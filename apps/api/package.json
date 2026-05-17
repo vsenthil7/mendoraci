@@ -13,8 +13,8 @@
     "test": "vitest run --coverage",
     "test:unit": "vitest run test/unit --coverage",
     "test:integration": "vitest run test/integration --coverage",
-    "db:migrate": "node-pg-migrate up -m src/db/migrations -j cjs",
-    "db:migrate:down": "node-pg-migrate down -m src/db/migrations -j cjs"
+    "db:migrate": "node-pg-migrate up -m src/db/migrations",
+    "db:migrate:down": "node-pg-migrate down -m src/db/migrations"
   },
   "dependencies": {
     "@fastify/sensible": "^6.0.1",

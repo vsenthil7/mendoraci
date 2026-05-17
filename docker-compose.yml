@@ -81,7 +81,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    command: ["pnpm", "exec", "node-pg-migrate", "up", "-m", "src/db/migrations", "-j", "cjs"]
+    command: ["pnpm", "exec", "node-pg-migrate", "up", "-m", "src/db/migrations"]
     restart: "no"
 
   api:
