@@ -55,3 +55,5 @@ tests/playwright/test-results-demo/
 .git_commit_msg.txt
 .commit_msg_short.txt
 .commit_msg_*.txt
+_msg.tmp
+_q.sql

@@ -14,10 +14,14 @@ import pg from 'pg';
  *   TEST-003    missing tenant   -> 401   BR-001 security
  *   TEST-004    oversized payload -> 413  BR-001
  *
- * Requires Postgres reachable at DATABASE_URL.
+ * Role split (CP-4b): the setup pool must bypass RLS to clean tables between
+ * tests, so it connects as DATABASE_URL_ADMIN. buildApp() reads DATABASE_URL
+ * which points to the non-super mendoraci_app role; that's the path actually
+ * under test.
  */
 
 const TENANT = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+const ADMIN_URL = process.env.DATABASE_URL_ADMIN ?? process.env.DATABASE_URL;
 
 function b64(s: string): string {
   return Buffer.from(s, 'utf8').toString('base64');
@@ -41,8 +45,7 @@ describe('Intake routes (CP-2 integration)', () => {
   beforeAll(async () => {
     app = await buildApp(loadConfig());
     await app.ready();
-    pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
-    // Seed the tenant (RLS-bypass via direct pool; OK for test bootstrap).
+    pool = new pg.Pool({ connectionString: ADMIN_URL });
     await pool.query(
       `INSERT INTO tenants (tenant_id, name) VALUES ($1, $2)
        ON CONFLICT (tenant_id) DO NOTHING`,
@@ -51,11 +54,12 @@ describe('Intake routes (CP-2 integration)', () => {
   });
 
   beforeEach(async () => {
-    // Clean intake tables between tests for determinism.
-    await pool.query("SELECT set_config('app.tenant_id', $1, true)", [TENANT]);
-    await pool.query('DELETE FROM idempotency_keys WHERE tenant_id = $1', [TENANT]);
-    await pool.query('DELETE FROM intake_meta WHERE tenant_id = $1', [TENANT]);
-    await pool.query('DELETE FROM raw_intake WHERE tenant_id = $1', [TENANT]);
+    // Admin pool bypasses RLS so we can wipe both tenants' rows in one go.
+    await pool.query('DELETE FROM idempotency_keys');
+    await pool.query('DELETE FROM repo_commits');
+    await pool.query('DELETE FROM repo_links');
+    await pool.query('DELETE FROM intake_meta');
+    await pool.query('DELETE FROM raw_intake');
   });
 
   afterAll(async () => {
@@ -63,9 +67,6 @@ describe('Intake routes (CP-2 integration)', () => {
     await pool.end();
   });
 
-  // ---------------------------------------------------------------------------
-  // TEST-001 — Happy path
-  // ---------------------------------------------------------------------------
   it('TEST-001: happy path returns 201 with intake_id + masked status', async () => {
     const t0 = Date.now();
     const res = await app.inject({
@@ -85,9 +86,8 @@ describe('Intake routes (CP-2 integration)', () => {
     expect(json.intake_id).toMatch(/^[0-9a-f-]{36}$/);
     expect(json.status).toBe('masked');
     expect(json.mask_policy_version).toBe('v1.0.0');
-    expect(elapsed).toBeLessThan(5_000); // p95 5s soft target
+    expect(elapsed).toBeLessThan(5_000);
 
-    // GET /intake/:id (API-002) returns the masked detail.
     const detail = await app.inject({
       method: 'GET',
       url: `/v1/intake/${json.intake_id}`,
@@ -127,12 +127,8 @@ describe('Intake routes (CP-2 integration)', () => {
     expect(preview).not.toContain('AKIAIOSFODNN7EXAMPLE');
   });
 
-  // ---------------------------------------------------------------------------
-  // TEST-001-A — Idempotency replay (RT-015)
-  // ---------------------------------------------------------------------------
   it('TEST-001-A: replaying the same (provider, run_id, attempt_id) returns the same intake_id', async () => {
     const payload = validBody({ run_id: 'replay-run-1', attempt_id: 'attempt-7' });
-
     const first = await app.inject({
       method: 'POST',
       url: '/v1/intake',
@@ -156,11 +152,9 @@ describe('Intake routes (CP-2 integration)', () => {
       },
       payload,
     });
-    expect(second.statusCode).toBe(200); // replay returns 200, not 201
+    expect(second.statusCode).toBe(200);
     expect(second.json().intake_id).toBe(id1);
 
-    // Confirm exactly ONE row exists.
-    await pool.query("SELECT set_config('app.tenant_id', $1, true)", [TENANT]);
     const count = await pool.query(
       'SELECT COUNT(*)::int AS n FROM intake_meta WHERE run_id = $1 AND attempt_id = $2',
       ['replay-run-1', 'attempt-7'],
@@ -168,9 +162,6 @@ describe('Intake routes (CP-2 integration)', () => {
     expect(count.rows[0].n).toBe(1);
   });
 
-  // ---------------------------------------------------------------------------
-  // TEST-002 — Schema validation
-  // ---------------------------------------------------------------------------
   it('TEST-002: malformed body returns 422 with validation_errors[]', async () => {
     const res = await app.inject({
       method: 'POST',
@@ -189,9 +180,6 @@ describe('Intake routes (CP-2 integration)', () => {
     expect(j.error.validation_errors.length).toBeGreaterThan(0);
   });
 
-  // ---------------------------------------------------------------------------
-  // TEST-003 — Missing / invalid tenant -> 401
-  // ---------------------------------------------------------------------------
   it('TEST-003: missing X-Tenant-Id header returns 401', async () => {
     const res = await app.inject({
       method: 'POST',
@@ -217,13 +205,7 @@ describe('Intake routes (CP-2 integration)', () => {
     expect(res.statusCode).toBe(401);
   });
 
-  // ---------------------------------------------------------------------------
-  // TEST-004 — Oversized payload -> 413
-  // ---------------------------------------------------------------------------
   it('TEST-004: artifact larger than 50 MB returns 413', async () => {
-    // Build a payload whose decoded body is just over 50 MB. We don't need full
-    // 50 MB on the wire; we craft a small base64 *claiming* >50 MB after decode.
-    // Approach: 50 MB + 1 of "A".
     const oversize = Buffer.alloc(50 * 1024 * 1024 + 16, 'A').toString('base64');
     const res = await app.inject({
       method: 'POST',
@@ -239,9 +221,6 @@ describe('Intake routes (CP-2 integration)', () => {
     expect(res.json().error.code).toMatch(/payload_too_large|artifact_exceeds/i);
   });
 
-  // ---------------------------------------------------------------------------
-  // Idempotency-Key header required
-  // ---------------------------------------------------------------------------
   it('TEST-015: missing Idempotency-Key returns 400', async () => {
     const res = await app.inject({
       method: 'POST',

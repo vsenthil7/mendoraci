@@ -7,8 +7,12 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # CP-4b: bootstrap user is ADMIN (superuser). Migrations run as this role.
+      # API runtime connects as `mendoraci_app` (non-super, no bypassrls) so RLS
+      # actually enforces. The app role is created by infra/sql/01-create-app-role.sql.
+      POSTGRES_USER: ${POSTGRES_ADMIN_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD}
+      POSTGRES_APP_PASSWORD: ${POSTGRES_APP_PASSWORD}
     volumes:
       - ./infra/data/postgres:/var/lib/postgresql/data
       - ./infra/sql:/docker-entrypoint-initdb.d:ro
@@ -78,7 +82,8 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      # Migrations run as ADMIN (DDL needs CREATE TABLE, ALTER, ENABLE RLS)
+      DATABASE_URL: postgresql://${POSTGRES_ADMIN_USER}:${POSTGRES_ADMIN_PASSWORD}@postgres:5432/${POSTGRES_DB}
     depends_on:
       postgres:
         condition: service_healthy
@@ -98,7 +103,11 @@ services:
         required: false
     environment:
       NODE_ENV: development
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      # API runtime: NON-SUPER `mendoraci_app` role so RLS FORCE fires.
+      DATABASE_URL: postgresql://mendoraci_app:${POSTGRES_APP_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      # Admin URL exposed for vitest integration test pools that need to bypass
+      # RLS for setup/teardown only. Not used by Fastify routes.
+      DATABASE_URL_ADMIN: postgresql://${POSTGRES_ADMIN_USER}:${POSTGRES_ADMIN_PASSWORD}@postgres:5432/${POSTGRES_DB}
     depends_on:
       postgres:
         condition: service_healthy
@@ -127,12 +136,8 @@ services:
     environment:
       NODE_ENV: development
       NEXT_PUBLIC_API_BASE_URL: http://api:4000
-      # Next.js dev needs to know to poll on bind mounts (Windows file events don't propagate to Linux containers)
       WATCHPACK_POLLING: "true"
       CHOKIDAR_USEPOLLING: "true"
-    # CP-3e fix: mount source so changes to apps/web/src/* hot-reload via `next dev`.
-    # node_modules and .next stay in the image to avoid Windows<->Linux symlink and
-    # binary compatibility issues with workspace deps and SWC.
     volumes:
       - ./apps/web/src:/app/apps/web/src
       - ./apps/web/public:/app/apps/web/public
@@ -159,7 +164,10 @@ services:
         required: false
     environment:
       NODE_ENV: test
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      # Playwright is an HTTP black-box client; it doesn't need DB access.
+      # The api container is where vitest runs (via cp2_run_integration_in_container.py),
+      # and that container has its own DATABASE_URL + DATABASE_URL_ADMIN.
+      DATABASE_URL: postgresql://mendoraci_app:${POSTGRES_APP_PASSWORD}@postgres:5432/${POSTGRES_DB}
       API_BASE_URL: http://api:4000
       WEB_BASE_URL: http://web:3000
       CI: "1"

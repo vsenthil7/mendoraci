@@ -7,19 +7,20 @@ import pg from 'pg';
 /**
  * Integration tests for API-003 (POST + GET /v1/intake/:id/link-repo / /repo).
  *
- * Anchors (per docs/MendoraCI_Traceability.md RT-002):
- *   TEST-005   happy link with commits   -> 201
- *   TEST-006   duplicate link            -> 409 repo_already_linked
- *   TEST-007   cross-tenant link attempt -> 404 intake_not_found (RLS)
+ * Anchors:
+ *   TEST-005   happy link with commits     -> 201
+ *   TEST-005-A link without commits        -> 201 commits_captured=0
+ *   TEST-006   duplicate link              -> 409 repo_already_linked
+ *   TEST-007   cross-tenant link attempt   -> 404 intake_not_found  (proves RLS)
  *
- * Cross-cuts:
- *   - RT-013 RLS (TEST-007 proves isolation: tenant B cannot link tenant A's intake)
- *   - RT-014 perm (CP-10) — for CP-4, any authenticated tenant member can link
- *   - RT-008 mask is not relevant here (no log body); repo URLs are stored as-is
+ * Role split (CP-4b): the setup pool uses DATABASE_URL_ADMIN to seed + clean
+ * data. buildApp() reads DATABASE_URL which points to the non-super
+ * mendoraci_app role, so RLS FORCE actually fires for the request paths.
  */
 
 const TENANT_A = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 const TENANT_B = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+const ADMIN_URL = process.env.DATABASE_URL_ADMIN ?? process.env.DATABASE_URL;
 
 function b64(s: string): string {
   return Buffer.from(s, 'utf8').toString('base64');
@@ -67,8 +68,7 @@ describe('Repo Linking routes (CP-4 integration)', () => {
   beforeAll(async () => {
     app = await buildApp(loadConfig());
     await app.ready();
-    pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
-    // Seed both tenants for TEST-007 cross-tenant.
+    pool = new pg.Pool({ connectionString: ADMIN_URL });
     await pool.query(
       `INSERT INTO tenants (tenant_id, name) VALUES ($1, $2)
        ON CONFLICT (tenant_id) DO NOTHING`,
@@ -82,7 +82,6 @@ describe('Repo Linking routes (CP-4 integration)', () => {
   });
 
   beforeEach(async () => {
-    // Clean repo + intake tables between tests. Direct pool == superuser (bypasses RLS).
     await pool.query('DELETE FROM repo_commits');
     await pool.query('DELETE FROM repo_links');
     await pool.query('DELETE FROM idempotency_keys');
@@ -95,7 +94,6 @@ describe('Repo Linking routes (CP-4 integration)', () => {
     await pool.end();
   });
 
-  // Helper: create an intake for the given tenant, return intake_id.
   async function createIntake(tenant: string): Promise<string> {
     const res = await app.inject({
       method: 'POST',
@@ -111,9 +109,6 @@ describe('Repo Linking routes (CP-4 integration)', () => {
     return res.json().intake_id as string;
   }
 
-  // ---------------------------------------------------------------------------
-  // TEST-005 — happy link with commits
-  // ---------------------------------------------------------------------------
   it('TEST-005: links a repo to an intake with commits and returns 201', async () => {
     const intakeId = await createIntake(TENANT_A);
 
@@ -133,7 +128,6 @@ describe('Repo Linking routes (CP-4 integration)', () => {
     expect(j.default_branch).toBe('main');
     expect(j.commits_captured).toBe(2);
 
-    // GET /v1/intake/:id/repo round-trips
     const detail = await app.inject({
       method: 'GET',
       url: `/v1/intake/${intakeId}/repo`,
@@ -143,7 +137,6 @@ describe('Repo Linking routes (CP-4 integration)', () => {
     const d = detail.json();
     expect(d.repo_link_id).toBe(j.repo_link_id);
     expect(d.commits).toHaveLength(2);
-    // Most recent first (authored_at DESC)
     expect(d.commits[0].commit_sha).toBe('abc1234567890def');
     expect(d.commits[1].commit_sha).toBe('fedcba0987654321');
     expect(d.commits[0].parents).toEqual(['deadbeef0123456']);
@@ -162,9 +155,6 @@ describe('Repo Linking routes (CP-4 integration)', () => {
     expect(link.json().default_branch).toBeNull();
   });
 
-  // ---------------------------------------------------------------------------
-  // TEST-006 — duplicate link returns 409
-  // ---------------------------------------------------------------------------
   it('TEST-006: linking the same intake twice returns 409 repo_already_linked', async () => {
     const intakeId = await createIntake(TENANT_A);
 
@@ -188,9 +178,6 @@ describe('Repo Linking routes (CP-4 integration)', () => {
     expect(second.json().error.code).toBe('repo_already_linked');
   });
 
-  // ---------------------------------------------------------------------------
-  // TEST-007 — cross-tenant link attempt returns 404 (RLS hides the intake)
-  // ---------------------------------------------------------------------------
   it('TEST-007: tenant B cannot link tenant A intake -> 404 intake_not_found', async () => {
     const tenantAIntake = await createIntake(TENANT_A);
 
@@ -203,7 +190,6 @@ describe('Repo Linking routes (CP-4 integration)', () => {
     expect(attack.statusCode, attack.payload).toBe(404);
     expect(attack.json().error.code).toBe('intake_not_found');
 
-    // GET also blocked (cross-tenant must not reveal existence)
     const get = await app.inject({
       method: 'GET',
       url: `/v1/intake/${tenantAIntake}/repo`,
@@ -211,7 +197,6 @@ describe('Repo Linking routes (CP-4 integration)', () => {
     });
     expect(get.statusCode).toBe(404);
 
-    // Tenant A still sees no link (we never created one) -> 404
     const tenantAGet = await app.inject({
       method: 'GET',
       url: `/v1/intake/${tenantAIntake}/repo`,
@@ -221,9 +206,6 @@ describe('Repo Linking routes (CP-4 integration)', () => {
     expect(tenantAGet.json().error.code).toBe('repo_link_not_found');
   });
 
-  // ---------------------------------------------------------------------------
-  // Negative — validation & ids
-  // ---------------------------------------------------------------------------
   it('NEG: invalid intake_id returns 400 invalid_intake_id', async () => {
     const res = await app.inject({
       method: 'POST',
