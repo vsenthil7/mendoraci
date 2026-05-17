@@ -50,3 +50,4 @@ demo/*.webm
 demovideo/.runner/
 demovideo/results/creation/latest.txt
 tests/playwright/test-results-demo/
+.git_commit_msg.txt  
