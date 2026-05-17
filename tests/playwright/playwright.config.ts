@@ -7,8 +7,14 @@ import { defineConfig, devices } from '@playwright/test';
  *   - Runs against the LIVE docker stack (mendoraci-web + mendoraci-api).
  *   - WEB_BASE_URL / API_BASE_URL env vars override defaults so the same suite
  *     runs from host OR from inside the `test` compose service.
- *   - Headless by default, both chromium + firefox + webkit lanes.
+ *   - Headless by default, chromium + firefox + webkit lanes.
  *   - All artefacts (trace, screenshot, video on failure) go to playwright-report/.
+ *
+ * CP-3 fix (v2): removed global `extraHTTPHeaders.x-tenant-id` because it was
+ * being inherited by `request.newContext()` inside negative tests, causing
+ * TEST-Pw-002b to receive 201 instead of 401. Each spec now sets the tenant
+ * header explicitly where it needs one, and the missing-tenant test gets a
+ * truly clean context.
  */
 
 const WEB = process.env.WEB_BASE_URL ?? 'http://localhost:3000';
@@ -27,10 +33,7 @@ export default defineConfig({
   ],
   use: {
     baseURL: WEB,
-    extraHTTPHeaders: {
-      // Test tenant; matches the one seeded by the integration test
-      'x-tenant-id': 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-    },
+    // No global extraHTTPHeaders — see header note above.
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -42,11 +45,8 @@ export default defineConfig({
     { name: 'firefox',  use: { ...devices['Desktop Firefox'] } },
     { name: 'webkit',   use: { ...devices['Desktop Safari'] } },
   ],
-  // Web/API are brought up by docker compose, not Playwright's webServer.
-  // Health-gate is in scripts/cp3_run_e2e.py before invoking playwright.
-  expect: {
-    timeout: 10_000,
-  },
+  expect: { timeout: 10_000 },
 });
 
 export const TEST_API = API;
+export const TEST_TENANT = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
