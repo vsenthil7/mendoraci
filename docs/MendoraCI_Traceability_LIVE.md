@@ -3,7 +3,7 @@
 > **Companion to `MendoraCI_Traceability.md`** (source-of-truth, preserved).
 > Updated after every dev commit per CLAUDE_RULES (17/05/2026 13:40).
 
-**Last update:** 2026-05-17 15:41 UK
+**Last update:** 2026-05-17 17:50 UK — RT-001 fully E2E green
 **Repo:** https://github.com/vsenthil7/mendoraci
 
 ---
@@ -12,112 +12,115 @@
 
 | RT | Subject | Status | Last commit | Tests passing |
 |---|---|---|---|---|
-| RT-001 | CI Log Intake | **tested-passing + pushed** ✅ | 647ce61 | 8/8 vitest; 27/39 Pw (CP-3d fix in flight) |
-| RT-008 | Secret Masking | **tested-passing + pushed** ✅ | 35149e8 | 16/16 |
-| RT-013 | Multi-Tenant Isolation | **tested-passing + pushed** ✅ | 647ce61 | RLS live |
-| RT-015 | Idempotency & Replay | **tested-passing + pushed** ✅ | 647ce61 | replay green |
-| RT-002..RT-007, RT-009..RT-012, RT-014, RT-016..RT-020 | — | not-started | — | — |
+| RT-001 | CI Log Intake | **tested-passing + pushed (E2E × 3 browsers)** ✅ | e9320a1 | 8/8 vitest + 14 Pw cases × 3 = 42/42 |
+| RT-008 | Secret Masking | **tested-passing + pushed** ✅ | 35149e8 | 16/16 unit + verified in UI flow |
+| RT-013 | Multi-Tenant Isolation | **tested-passing + pushed** ✅ | e9320a1 | RLS FORCE, Pw 401×2 green |
+| RT-015 | Idempotency & Replay | **tested-passing + pushed** ✅ | e9320a1 | Pw replay + missing-key 400 green |
+| RT-002 | Repo Linking | **NEXT (CP-4)** | — | — |
+| RT-003 | RCA | not-started (needs Bob) | — | — |
+| RT-004 | Repair Plan | not-started | — | — |
+| RT-005 | Approval Workflow | not-started | — | — |
+| RT-006 | Evidence Export | not-started | — | — |
+| RT-007 | Analytics | not-started | — | — |
+| RT-009..RT-012 | — | not-started | — | — |
+| RT-014 | Role/Permission Model | not-started | — | — |
+| RT-016..RT-020 | — | not-started | — | — |
 
-**Roll-up: 4 / 20 RT rows tested-passing+pushed. Vitest 24/24. Playwright 27/39 (CP-3d will close the remaining 12).**
-
----
-
-## 2. CP-3 Playwright trajectory
-
-| Run | Pass | Fail | Bug |
-|---|---|---|---|
-| CP-3 (15:14) | 18/39 | 21 | Pw version mismatch (18) + global tenant header leak (3) |
-| **CP-3c (15:39)** | **27/39** | **12** | **`crypto.randomUUID is not a function` in web app — secure-context-only API** |
-| _CP-3d pending_ | **39/39 expected** | 0 | secure-context-safe UUID fallback |
-
-**+9 passes per fix cycle. Same 12 failures hit all 3 browsers identically — proves it's a code bug not a browser quirk.**
+**Roll-up: 4 / 20 RT rows green. Total tests: 24 vitest + 42 Playwright = 66 cases, all green.**
 
 ---
 
-## 3. CP-3d root cause + fix
+## 2. CP-3 Playwright trajectory (final)
 
-**Error (×12 across chromium/firefox/webkit):**
-```
-TypeError: crypto.randomUUID is not a function
-```
-
-**Root cause:** `crypto.randomUUID()` in `apps/web/src/app/page.tsx` only works in secure contexts (HTTPS or `http://localhost`). Inside Docker the Playwright test container loads the page via `http://web:3000` (docker DNS hostname), which browsers treat as NON-secure → `crypto.randomUUID` undefined → page throws BEFORE the fetch → `waitForResponse` times out → rendered error is the JS TypeError, not the API's `internal_error`.
-
-**Fix:** `randomIdempotencyKey()` helper with 3-tier fallback:
-1. `crypto.randomUUID()` (secure context)
-2. `crypto.getRandomValues()` + manual RFC 4122 v4 assembly (works in non-secure too)
-3. `Math.random()` last resort (always works, weaker entropy — acceptable for client-side dedupe key)
-
-When user opens http://localhost:3000 in their browser, path 1 still fires (localhost is secure-context). When Playwright opens http://web:3000 from inside the docker network, path 2 fires.
+| Run | Pass | Fail | Diagnosis | Fix |
+|---|---|---|---|---|
+| CP-3 (15:14) | 18/39 | 21 | Playwright ver + global tenant header | CP-3c pin 1.48 + drop default |
+| CP-3c (15:39) | 27/39 | 12 | crypto.randomUUID secure-context | CP-3d fallback |
+| CP-3d (16:55) | 27/39 | 12 | **same** — web image cached, fix not running | CP-3e bind-mount + force-rebuild |
+| CP-3e (17:13) | 27/39 | 12 | Playwright resolved to 1.60 but image is 1.48 | CP-3f bump image |
+| **CP-3f (17:45)** | **42/42** | **0** | — | Done ✅ |
 
 ---
 
-## 4. Live Commit Ledger
+## 3. Docker stack (all in Docker per CLAUDE_RULES, no scope shrink)
+
+| Service | Status |
+|---|---|
+| postgres | ✅ healthy |
+| redis | ✅ healthy |
+| minio + minio-init | ✅ buckets ready |
+| api-migrate | ✅ exited 0 |
+| api | ✅ healthy /health 200 |
+| web | ✅ http://localhost:3000 SCR-001 renders, bind-mounted for hot-reload |
+| test (Playwright 1.60.0-jammy) | ✅ 42/42 green |
+
+---
+
+## 4. Live Commit Ledger (most recent first)
 
 | Commit | What |
 |---|---|
-| _pending CP-3d_ | crypto.randomUUID fallback chain in apps/web/src/app/page.tsx |
-| 647ce61 | CP-3c pin Playwright 1.48.0 + drop global tenant header default |
-| c612be0 | CP-3 Playwright suite (4 specs, 13 cases × 3 browsers = 39) |
-| 64b8e87 | RT-001/013/015 flip + bob v2 + discover v1 |
-| fc6b4ea | CP-2c-5 envelope shape + race-free idempotency (8/8 vitest) |
-| a05be44 | CP-2c-4 error-handler rewrite |
-| 203986c | CP-2c-3 drop tsx watch |
-| 5ad9e4c | CP-2c-2 drop -j cjs |
-| aea042c | CP-2c-1 .dockerignore |
-| 1a463e8 | CP-2c full docker stack + web SCR-001 |
-| 8a3b5ed | CP-1 mask-policy verified |
+| _pending CP-3-DONE_ | flip RT-001 to E2E-green + Traceability_LIVE update + start CP-4 |
+| e9320a1 | chore: gitignore commit-msg scratch |
+| aeb04bb | CP-3f bump Playwright image 1.48 -> 1.60-jammy |
+| 91fd8f1 | CP-3e force-rebuild web + bind-mount source |
+| 54ac6a3 | chore gitignore demo recordings |
+| 5b9b659 | demo 1-min SCR-001 walkthrough |
+| dc5e9d4 | CP-3d crypto.randomUUID fallback |
+| 647ce61 | CP-3c pin Playwright 1.48 + drop default header |
+| c612be0 | CP-3 Playwright suite (4 specs) |
+| 64b8e87 | RT-001/013/015 flip + bob v2 |
+| fc6b4ea | CP-2c-5 envelope shape (8/8 vitest) |
 | 35149e8 | CP-0 scaffold |
-| _(others in between, see git log)_ | |
 
 ---
 
 ## 5. Test Coverage Map
 
-| Anchor | Test | Status |
+| Anchor | Layer | Status |
 |---|---|---|
-| BR-008 / TEST-023 | mask N=500 0 leaks | ✅ |
-| BR-008 / TEST-024 | fail-closed | ✅ |
-| BR-008 | determinism + pinning | ✅ |
-| BR-008 | no over-mask | ✅ |
-| BR-008 | applyMaskOrThrow + MaskBlockedError | ✅ |
-| BR-001 / TEST-001 happy | 201 + p95 5s | ✅ (vitest) |
-| BR-001 / TEST-001 mask preview | masked body | ✅ |
-| RT-015 / TEST-001-A | replay 1 row | ✅ |
-| BR-001 / TEST-002 | 422 schema | ✅ |
-| BR-001 / TEST-003 missing tenant | 401 | ✅ |
-| BR-001 / TEST-003 bad UUID | 401 | ✅ |
-| BR-001 / TEST-004 | 413 oversized | ✅ |
-| RT-015 / TEST-015 | 400 idem-key missing | ✅ |
-| Pw-001 renders all controls | × 3 | ✅ ✅ ✅ |
-| Pw-002a 422 | × 3 | ✅ ✅ ✅ |
-| Pw-002b 401 missing tenant | × 3 | ✅ ✅ ✅ |
-| Pw-002c 401 bad UUID | × 3 | ✅ ✅ ✅ |
-| Pw-002d 400 missing idem-key | × 3 | ✅ ✅ ✅ |
-| Pw-002e 413 oversized | × 3 | ✅ ✅ ✅ |
-| Pw-002f 400 bad UUID GET | × 3 | ✅ ✅ ✅ |
-| Pw-002g 404 unknown intake | × 3 | ✅ ✅ ✅ |
-| Pw-003c network down | × 3 | ✅ ✅ ✅ |
-| **Pw-001 submit-sample** | × 3 | ⏳ CP-3d (crypto.randomUUID fix) |
-| **Pw-001b mask not leaked in render** | × 3 | ⏳ CP-3d |
-| **Pw-003a 500 surfacing** | × 3 | ⏳ CP-3d |
-| **Pw-003b 422 surfacing** | × 3 | ⏳ CP-3d |
+| BR-008 / TEST-023 mask N=500 0 leaks | vitest unit | ✅ |
+| BR-008 / TEST-024 fail-closed | vitest unit | ✅ |
+| BR-008 determinism + pinning | vitest unit | ✅ |
+| BR-008 no over-mask | vitest unit | ✅ |
+| BR-008 applyMaskOrThrow surface | vitest unit | ✅ |
+| BR-001 / TEST-001 happy 201 + p95 5s | vitest integration | ✅ |
+| BR-008 cross / mask preview embedded | vitest integration | ✅ |
+| RT-015 / TEST-001-A replay 1 row | vitest integration | ✅ |
+| BR-001 / TEST-002 422 schema | vitest integration | ✅ |
+| BR-001 / TEST-003 401 (missing + bad UUID) | vitest integration | ✅ ✅ |
+| BR-001 / TEST-004 413 oversized | vitest integration | ✅ |
+| RT-015 / TEST-015 400 idem-key missing | vitest integration | ✅ |
+| Pw-001 renders + submit happy | Pw × 3 browsers | ✅ × 6 |
+| Pw-001b mask not leaked | Pw × 3 | ✅ × 3 |
+| Pw-002a 422 schema (real HTTP) | Pw × 3 | ✅ × 3 |
+| Pw-002b 401 missing tenant | Pw × 3 | ✅ × 3 |
+| Pw-002c 401 bad UUID | Pw × 3 | ✅ × 3 |
+| Pw-002d 400 missing idem-key | Pw × 3 | ✅ × 3 |
+| Pw-002e 413 oversized | Pw × 3 | ✅ × 3 |
+| Pw-002f 400 bad UUID GET | Pw × 3 | ✅ × 3 |
+| Pw-002g 404 unknown intake | Pw × 3 | ✅ × 3 |
+| Pw-003a UI surfaces 500 | Pw × 3 | ✅ × 3 |
+| Pw-003b UI surfaces 422 | Pw × 3 | ✅ × 3 |
+| Pw-003c UI surfaces network down | Pw × 3 | ✅ × 3 |
+| Demo recording 60s captioned walkthrough | Pw × 3 | ✅ × 3 |
 
-**Current: 24 vitest + 27 Playwright = 51 cases green. After CP-3d: 24 + 39 = 63.**
+**Totals: 24 vitest + 42 Playwright = 66 / 66 ✅ across what's coded so far.**
 
 ---
 
-## 6. Next-task queue
+## 6. CP-4 RT-002 Repo Linking — starting now
 
-1. **CP-3d verify** — re-run `python scripts/cp3_run_e2e.py` after fix push (NB: ~1 min image rebuild + ~5 min full E2E run, mostly the 50MB oversize test × 3 browsers)
-2. **CP-4** RT-002 Repo Linking — API-003 + DB-003/004 + SCR-002 + tests
-3. **CP-5** RT-003 RCA — first Bob call (`.\scripts\bob_discover.ps1` v2 then)
-4. **CP-6** RT-004 Repair Plan
-5. **CP-7** RT-005 Approval
-6. **CP-8** RT-006 Evidence Export
-7. **CP-9** RT-007 Analytics
-8. **CP-10** RT-014 Roles + RT-011 Audit
-9. **CP-11** RT-009 PromptOps + RT-012 Eval gate
-10. **CP-12** RT-016 Cost + RT-019 Residency
-11. **CP-13** RT-010 Flaky + RT-017 Drift + RT-020 Replay
-12. **CP-14** RT-018 QBR
+**Scope per `docs/MendoraCI_Traceability.md`:**
+- BG-001, BR-002, SCR-002, API-003, DB-003 + DB-004, TEST-005..007, EVID-002, RC-002 + RC-019, IMP-015
+- Cross-cuts: RT-008 (PII in repo metadata), RT-013 (tenant scoping), RT-014 (perm to link)
+
+**Build plan (mini-sprint):**
+1. DB-003 `repo_links` table (intake_id, repo_provider, repo_url, default_branch, linked_at, linked_by, tenant_id + RLS)
+2. DB-004 `repo_commits` table (intake_id, repo_link_id, commit_sha, message, author, authored_at, parents jsonb, tenant_id + RLS)
+3. API-003 POST /v1/intake/:id/link-repo + GET /v1/intake/:id/repo
+4. apps/web SCR-002 page (basic form behind /intake/:id route)
+5. vitest integration: TEST-005 happy link, TEST-006 dup link 409, TEST-007 unauthorized cross-tenant 404 (RLS)
+6. Playwright SCR-002 happy + negative cycle
+
+Each step: edit → commit → push → test → fix → commit → push → next.
