@@ -1,0 +1,1307 @@
+PS C:\Users\v_sen> date
+
+17 May 2026 14:32:58
+
+
+PS C:\Users\v_sen> curl http://localhost:4000/health
+
+Security Warning: Script Execution Risk
+Invoke-WebRequest parses the content of the web page. Script code in the web page might be run when the page is
+parsed.
+      RECOMMENDED ACTION:
+      Use the -UseBasicParsing switch to avoid script code execution.
+
+      Do you want to continue?
+
+[Y] Yes  [A] Yes to All  [N] No  [L] No to All  [S] Suspend  [?] Help (default is "N"): A
+
+
+StatusCode        : 200
+StatusDescription : OK
+Content           : {"status":"ok","service":"mendoraci-api","version":"0.1.0","db":"ok","mask_policy_version":"v1.0.0"
+                    ,"time":"2026-05-17T13:33:09.871Z"}
+RawContent        : HTTP/1.1 200 OK
+                    Connection: keep-alive
+                    Keep-Alive: timeout=72
+                    Content-Length: 134
+                    Content-Type: application/json; charset=utf-8
+                    Date: Sun, 17 May 2026 13:33:09 GMT
+
+                    {"status":"ok","service":"me...
+Forms             : {}
+Headers           : {[Connection, keep-alive], [Keep-Alive, timeout=72], [Content-Length, 134], [Content-Type,
+                    application/json; charset=utf-8]...}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        : mshtml.HTMLDocumentClass
+RawContentLength  : 134
+
+
+
+PS C:\Users\v_sen> date
+
+17 May 2026 14:33:23
+
+
+PS C:\Users\v_sen> docker compose logs api-migrate
+no configuration file provided: not found
+
+What's next:
+    Debug this Compose error with Gordon → docker ai "help me fix this compose error"
+PS C:\Users\v_sen> date
+
+17 May 2026 14:33:45
+
+
+PS C:\Users\v_sen> docker compose logs api
+no configuration file provided: not found
+
+What's next:
+    Debug this Compose error with Gordon → docker ai "help me fix this compose error"
+PS C:\Users\v_sen> date
+
+17 May 2026 14:34:00
+
+
+PS C:\Users\v_sen>
+
+
+
+
+PS C:\Users\v_sen> cd C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> date
+
+17 May 2026 14:35:12
+
+
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> docker compose logs api
+mendoraci-api  |
+mendoraci-api  | > @mendoraci/api@0.1.0 dev /app/apps/api
+mendoraci-api  | > tsc -p tsconfig.json && node dist/index.js
+mendoraci-api  |
+mendoraci-api  | [13:22:10.254] INFO (18): Postgres pool ready
+mendoraci-api  | [13:22:10.260] INFO (18): Server listening at http://127.0.0.1:4000
+mendoraci-api  | [13:22:10.261] INFO (18): Server listening at http://172.21.0.5:4000
+mendoraci-api  | [13:22:10.261] INFO (18): MendoraCI API listening on http://0.0.0.0:4000
+mendoraci-api  | [13:22:16.652] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-1"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 41530
+mendoraci-api  |     }
+mendoraci-api  | [13:22:16.662] INFO (18): request completed
+mendoraci-api  |     reqId: "req-1"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 9.659624010324478
+mendoraci-api  | [13:22:26.749] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-2"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 49580
+mendoraci-api  |     }
+mendoraci-api  | [13:22:26.753] INFO (18): request completed
+mendoraci-api  |     reqId: "req-2"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 3.568972021341324
+mendoraci-api  | [13:22:36.823] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-3"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 56250
+mendoraci-api  |     }
+mendoraci-api  | [13:22:36.826] INFO (18): request completed
+mendoraci-api  |     reqId: "req-3"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 2.9773350059986115
+mendoraci-api  | [13:22:46.882] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-4"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 56904
+mendoraci-api  |     }
+mendoraci-api  | [13:22:46.885] INFO (18): request completed
+mendoraci-api  |     reqId: "req-4"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 2.196529984474182
+mendoraci-api  | [13:22:48.658] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-5"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "172.21.0.1",
+mendoraci-api  |       "remotePort": 42080
+mendoraci-api  |     }
+mendoraci-api  | [13:22:48.660] INFO (18): request completed
+mendoraci-api  |     reqId: "req-5"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 1.5399479866027832
+mendoraci-api  | [13:22:56.976] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-6"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 38122
+mendoraci-api  |     }
+mendoraci-api  | [13:22:56.980] INFO (18): request completed
+mendoraci-api  |     reqId: "req-6"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 4.169381022453308
+mendoraci-api  | [13:23:07.044] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-7"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 51116
+mendoraci-api  |     }
+mendoraci-api  | [13:23:07.047] INFO (18): request completed
+mendoraci-api  |     reqId: "req-7"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 1.7563029825687408
+mendoraci-api  | [13:23:17.101] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-8"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 34478
+mendoraci-api  |     }
+mendoraci-api  | [13:23:17.104] INFO (18): request completed
+mendoraci-api  |     reqId: "req-8"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 2.6363750100135803
+mendoraci-api  | [13:23:27.161] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-9"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 55112
+mendoraci-api  |     }
+mendoraci-api  | [13:23:27.162] INFO (18): request completed
+mendoraci-api  |     reqId: "req-9"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 1.6632470190525055
+mendoraci-api  | [13:23:37.221] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-a"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 50430
+mendoraci-api  |     }
+mendoraci-api  | [13:23:37.226] INFO (18): request completed
+mendoraci-api  |     reqId: "req-a"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 4.346608012914658
+mendoraci-api  | [13:23:47.339] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-b"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 59842
+mendoraci-api  |     }
+mendoraci-api  | [13:23:47.344] INFO (18): request completed
+mendoraci-api  |     reqId: "req-b"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 4.211883008480072
+mendoraci-api  | [13:23:57.513] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-c"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 43926
+mendoraci-api  |     }
+mendoraci-api  | [13:23:57.522] INFO (18): request completed
+mendoraci-api  |     reqId: "req-c"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 8.157326996326447
+mendoraci-api  | [13:24:07.817] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-d"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 58944
+mendoraci-api  |     }
+mendoraci-api  | [13:24:07.821] INFO (18): request completed
+mendoraci-api  |     reqId: "req-d"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 3.765069991350174
+mendoraci-api  | [13:24:17.980] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-e"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 58616
+mendoraci-api  |     }
+mendoraci-api  | [13:24:17.989] INFO (18): request completed
+mendoraci-api  |     reqId: "req-e"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 9.041551977396011
+mendoraci-api  | [13:24:28.228] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-f"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 40238
+mendoraci-api  |     }
+mendoraci-api  | [13:24:28.230] INFO (18): request completed
+mendoraci-api  |     reqId: "req-f"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 1.8229329884052277
+mendoraci-api  | [13:24:38.316] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-g"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 41690
+mendoraci-api  |     }
+mendoraci-api  | [13:24:38.321] INFO (18): request completed
+mendoraci-api  |     reqId: "req-g"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 3.5680769979953766
+mendoraci-api  | [13:24:48.383] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-h"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 46892
+mendoraci-api  |     }
+mendoraci-api  | [13:24:48.386] INFO (18): request completed
+mendoraci-api  |     reqId: "req-h"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 2.175935000181198
+mendoraci-api  | [13:24:58.452] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-i"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 57814
+mendoraci-api  |     }
+mendoraci-api  | [13:24:58.467] INFO (18): request completed
+mendoraci-api  |     reqId: "req-i"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 14.209562003612518
+mendoraci-api  | [13:25:08.534] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-j"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 58354
+mendoraci-api  |     }
+mendoraci-api  | [13:25:08.535] INFO (18): request completed
+mendoraci-api  |     reqId: "req-j"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 1.1746859848499298
+mendoraci-api  | [13:25:18.586] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-k"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 42000
+mendoraci-api  |     }
+mendoraci-api  | [13:25:18.587] INFO (18): request completed
+mendoraci-api  |     reqId: "req-k"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 1.1337479948997498
+mendoraci-api  | [13:25:28.654] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-l"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 36684
+mendoraci-api  |     }
+mendoraci-api  | [13:25:28.656] INFO (18): request completed
+mendoraci-api  |     reqId: "req-l"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 1.6359730064868927
+mendoraci-api  | [13:25:38.716] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-m"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 50068
+mendoraci-api  |     }
+mendoraci-api  | [13:25:38.717] INFO (18): request completed
+mendoraci-api  |     reqId: "req-m"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 0.8556709885597229
+mendoraci-api  | [13:25:48.797] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-n"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 33764
+mendoraci-api  |     }
+mendoraci-api  | [13:25:48.799] INFO (18): request completed
+mendoraci-api  |     reqId: "req-n"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 2.0061279833316803
+mendoraci-api  | [13:25:58.854] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-o"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 57074
+mendoraci-api  |     }
+mendoraci-api  | [13:25:58.855] INFO (18): request completed
+mendoraci-api  |     reqId: "req-o"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 0.9280189871788025
+mendoraci-api  | [13:26:08.905] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-p"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 59992
+mendoraci-api  |     }
+mendoraci-api  | [13:26:08.906] INFO (18): request completed
+mendoraci-api  |     reqId: "req-p"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 0.8050810098648071
+mendoraci-api  | [13:26:18.952] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-q"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 39142
+mendoraci-api  |     }
+mendoraci-api  | [13:26:18.953] INFO (18): request completed
+mendoraci-api  |     reqId: "req-q"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 1.021003007888794
+mendoraci-api  | [13:26:29.028] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-r"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 59892
+mendoraci-api  |     }
+mendoraci-api  | [13:26:29.029] INFO (18): request completed
+mendoraci-api  |     reqId: "req-r"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 0.989767998456955
+mendoraci-api  | [13:26:39.081] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-s"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 58862
+mendoraci-api  |     }
+mendoraci-api  | [13:26:39.082] INFO (18): request completed
+mendoraci-api  |     reqId: "req-s"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 1.061149001121521
+mendoraci-api  | [13:26:49.135] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-t"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 51678
+mendoraci-api  |     }
+mendoraci-api  | [13:26:49.136] INFO (18): request completed
+mendoraci-api  |     reqId: "req-t"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 0.9952549934387207
+mendoraci-api  | [13:26:59.199] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-u"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 58086
+mendoraci-api  |     }
+mendoraci-api  | [13:26:59.200] INFO (18): request completed
+mendoraci-api  |     reqId: "req-u"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 0.8302299976348877
+mendoraci-api  | [13:27:09.254] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-v"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 40160
+mendoraci-api  |     }
+mendoraci-api  | [13:27:09.256] INFO (18): request completed
+mendoraci-api  |     reqId: "req-v"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 1.1098520159721375
+mendoraci-api  | [13:27:19.331] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-w"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 45748
+mendoraci-api  |     }
+mendoraci-api  | [13:27:19.333] INFO (18): request completed
+mendoraci-api  |     reqId: "req-w"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 1.6328150033950806
+mendoraci-api  | [13:27:29.396] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-x"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 33076
+mendoraci-api  |     }
+mendoraci-api  | [13:27:29.397] INFO (18): request completed
+mendoraci-api  |     reqId: "req-x"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 1.1984300017356873
+mendoraci-api  | [13:27:39.451] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-y"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 43292
+mendoraci-api  |     }
+mendoraci-api  | [13:27:39.452] INFO (18): request completed
+mendoraci-api  |     reqId: "req-y"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 0.9384520053863525
+mendoraci-api  | [13:27:49.502] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-z"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 47106
+mendoraci-api  |     }
+mendoraci-api  | [13:27:49.503] INFO (18): request completed
+mendoraci-api  |     reqId: "req-z"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 0.76003298163414
+mendoraci-api  | [13:27:59.559] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-10"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 43516
+mendoraci-api  |     }
+mendoraci-api  | [13:27:59.562] INFO (18): request completed
+mendoraci-api  |     reqId: "req-10"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 2.972104012966156
+mendoraci-api  | [13:28:09.614] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-11"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 52770
+mendoraci-api  |     }
+mendoraci-api  | [13:28:09.616] INFO (18): request completed
+mendoraci-api  |     reqId: "req-11"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 1.0212270021438599
+mendoraci-api  | [13:28:19.663] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-12"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 39422
+mendoraci-api  |     }
+mendoraci-api  | [13:28:19.673] INFO (18): request completed
+mendoraci-api  |     reqId: "req-12"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 9.870548993349075
+mendoraci-api  | [13:28:29.743] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-13"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 35386
+mendoraci-api  |     }
+mendoraci-api  | [13:28:29.744] INFO (18): request completed
+mendoraci-api  |     reqId: "req-13"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 1.390366017818451
+mendoraci-api  | [13:28:39.797] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-14"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 41596
+mendoraci-api  |     }
+mendoraci-api  | [13:28:39.799] INFO (18): request completed
+mendoraci-api  |     reqId: "req-14"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 1.2471619844436646
+mendoraci-api  | [13:28:49.863] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-15"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 40528
+mendoraci-api  |     }
+mendoraci-api  | [13:28:49.864] INFO (18): request completed
+mendoraci-api  |     reqId: "req-15"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 1.2018510103225708
+mendoraci-api  | [13:28:59.920] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-16"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 34042
+mendoraci-api  |     }
+mendoraci-api  | [13:28:59.922] INFO (18): request completed
+mendoraci-api  |     reqId: "req-16"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 1.3501920104026794
+mendoraci-api  | [13:29:09.984] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-17"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 57390
+mendoraci-api  |     }
+mendoraci-api  | [13:29:09.985] INFO (18): request completed
+mendoraci-api  |     reqId: "req-17"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 1.0064040124416351
+mendoraci-api  | [13:29:20.036] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-18"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 36102
+mendoraci-api  |     }
+mendoraci-api  | [13:29:20.038] INFO (18): request completed
+mendoraci-api  |     reqId: "req-18"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 1.0494700074195862
+mendoraci-api  | [13:29:30.088] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-19"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 36790
+mendoraci-api  |     }
+mendoraci-api  | [13:29:30.089] INFO (18): request completed
+mendoraci-api  |     reqId: "req-19"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 1.5072180032730103
+mendoraci-api  | [13:29:40.141] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-1a"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 50328
+mendoraci-api  |     }
+mendoraci-api  | [13:29:40.144] INFO (18): request completed
+mendoraci-api  |     reqId: "req-1a"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 2.292950004339218
+mendoraci-api  | [13:29:50.188] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-1b"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 59018
+mendoraci-api  |     }
+mendoraci-api  | [13:29:50.190] INFO (18): request completed
+mendoraci-api  |     reqId: "req-1b"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 1.6051380038261414
+mendoraci-api  | [13:30:00.232] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-1c"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 36738
+mendoraci-api  |     }
+mendoraci-api  | [13:30:00.233] INFO (18): request completed
+mendoraci-api  |     reqId: "req-1c"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 1.0279900133609772
+mendoraci-api  | [13:30:10.276] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-1d"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 59532
+mendoraci-api  |     }
+mendoraci-api  | [13:30:10.279] INFO (18): request completed
+mendoraci-api  |     reqId: "req-1d"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 2.1528210043907166
+mendoraci-api  | [13:30:20.324] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-1e"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 36108
+mendoraci-api  |     }
+mendoraci-api  | [13:30:20.326] INFO (18): request completed
+mendoraci-api  |     reqId: "req-1e"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 1.623177021741867
+mendoraci-api  | [13:30:30.378] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-1f"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 45850
+mendoraci-api  |     }
+mendoraci-api  | [13:30:30.380] INFO (18): request completed
+mendoraci-api  |     reqId: "req-1f"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 1.359618991613388
+mendoraci-api  | [13:30:40.434] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-1g"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 60482
+mendoraci-api  |     }
+mendoraci-api  | [13:30:40.435] INFO (18): request completed
+mendoraci-api  |     reqId: "req-1g"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 1.4793910086154938
+mendoraci-api  | [13:30:50.502] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-1h"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 56588
+mendoraci-api  |     }
+mendoraci-api  | [13:30:50.504] INFO (18): request completed
+mendoraci-api  |     reqId: "req-1h"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 1.8462089896202087
+mendoraci-api  | [13:31:00.553] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-1i"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 48806
+mendoraci-api  |     }
+mendoraci-api  | [13:31:00.554] INFO (18): request completed
+mendoraci-api  |     reqId: "req-1i"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 1.0924510061740875
+mendoraci-api  | [13:31:10.605] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-1j"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 51368
+mendoraci-api  |     }
+mendoraci-api  | [13:31:10.608] INFO (18): request completed
+mendoraci-api  |     reqId: "req-1j"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 2.384784013032913
+mendoraci-api  | [13:31:20.669] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-1k"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 36876
+mendoraci-api  |     }
+mendoraci-api  | [13:31:20.670] INFO (18): request completed
+mendoraci-api  |     reqId: "req-1k"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 1.245529979467392
+mendoraci-api  | [13:31:30.729] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-1l"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 37320
+mendoraci-api  |     }
+mendoraci-api  | [13:31:30.735] INFO (18): request completed
+mendoraci-api  |     reqId: "req-1l"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 6.277954012155533
+mendoraci-api  | [13:31:40.781] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-1m"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 41140
+mendoraci-api  |     }
+mendoraci-api  | [13:31:40.782] INFO (18): request completed
+mendoraci-api  |     reqId: "req-1m"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 1.2789979875087738
+mendoraci-api  | [13:31:50.853] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-1n"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 49512
+mendoraci-api  |     }
+mendoraci-api  | [13:31:50.854] INFO (18): request completed
+mendoraci-api  |     reqId: "req-1n"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 0.9853200018405914
+mendoraci-api  | [13:32:00.964] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-1o"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 42750
+mendoraci-api  |     }
+mendoraci-api  | [13:32:00.989] INFO (18): request completed
+mendoraci-api  |     reqId: "req-1o"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 22.499114006757736
+mendoraci-api  | [13:32:11.085] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-1p"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 56226
+mendoraci-api  |     }
+mendoraci-api  | [13:32:11.087] INFO (18): request completed
+mendoraci-api  |     reqId: "req-1p"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 2.1296480000019073
+mendoraci-api  | [13:32:21.186] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-1q"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 54834
+mendoraci-api  |     }
+mendoraci-api  | [13:32:21.189] INFO (18): request completed
+mendoraci-api  |     reqId: "req-1q"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 2.870474010705948
+mendoraci-api  | [13:32:31.284] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-1r"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 56152
+mendoraci-api  |     }
+mendoraci-api  | [13:32:31.286] INFO (18): request completed
+mendoraci-api  |     reqId: "req-1r"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 1.7950530052185059
+mendoraci-api  | [13:32:41.357] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-1s"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 36116
+mendoraci-api  |     }
+mendoraci-api  | [13:32:41.358] INFO (18): request completed
+mendoraci-api  |     reqId: "req-1s"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 0.8200530111789703
+mendoraci-api  | [13:32:46.169] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-1t"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "172.21.0.1",
+mendoraci-api  |       "remotePort": 58652
+mendoraci-api  |     }
+mendoraci-api  | [13:32:46.170] INFO (18): request completed
+mendoraci-api  |     reqId: "req-1t"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 1.4268250167369843
+mendoraci-api  | [13:32:51.417] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-1u"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 45586
+mendoraci-api  |     }
+mendoraci-api  | [13:32:51.421] INFO (18): request completed
+mendoraci-api  |     reqId: "req-1u"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 4.135554999113083
+mendoraci-api  | [13:33:01.474] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-1v"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 37586
+mendoraci-api  |     }
+mendoraci-api  | [13:33:01.475] INFO (18): request completed
+mendoraci-api  |     reqId: "req-1v"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 0.8673860132694244
+mendoraci-api  | [13:33:09.870] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-1w"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "172.21.0.1",
+mendoraci-api  |       "remotePort": 35418
+mendoraci-api  |     }
+mendoraci-api  | [13:33:09.871] INFO (18): request completed
+mendoraci-api  |     reqId: "req-1w"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 1.0526669919490814
+mendoraci-api  | [13:33:11.547] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-1x"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 56560
+mendoraci-api  |     }
+mendoraci-api  | [13:33:11.548] INFO (18): request completed
+mendoraci-api  |     reqId: "req-1x"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 0.8836750090122223
+mendoraci-api  | [13:33:21.604] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-1y"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 56588
+mendoraci-api  |     }
+mendoraci-api  | [13:33:21.605] INFO (18): request completed
+mendoraci-api  |     reqId: "req-1y"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 0.7157849967479706
+mendoraci-api  | [13:33:31.667] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-1z"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 42932
+mendoraci-api  |     }
+mendoraci-api  | [13:33:31.668] INFO (18): request completed
+mendoraci-api  |     reqId: "req-1z"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 1.2346540093421936
+mendoraci-api  | [13:33:41.730] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-20"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 51922
+mendoraci-api  |     }
+mendoraci-api  | [13:33:41.731] INFO (18): request completed
+mendoraci-api  |     reqId: "req-20"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 0.9638060033321381
+mendoraci-api  | [13:33:51.777] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-21"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 56562
+mendoraci-api  |     }
+mendoraci-api  | [13:33:51.778] INFO (18): request completed
+mendoraci-api  |     reqId: "req-21"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 0.694487988948822
+mendoraci-api  | [13:34:01.826] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-22"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 36008
+mendoraci-api  |     }
+mendoraci-api  | [13:34:01.827] INFO (18): request completed
+mendoraci-api  |     reqId: "req-22"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 0.9886329770088196
+mendoraci-api  | [13:34:11.873] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-23"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 58406
+mendoraci-api  |     }
+mendoraci-api  | [13:34:11.875] INFO (18): request completed
+mendoraci-api  |     reqId: "req-23"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 2.1074059903621674
+mendoraci-api  | [13:34:21.920] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-24"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 45328
+mendoraci-api  |     }
+mendoraci-api  | [13:34:21.921] INFO (18): request completed
+mendoraci-api  |     reqId: "req-24"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 0.7008279860019684
+mendoraci-api  | [13:34:31.980] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-25"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 53218
+mendoraci-api  |     }
+mendoraci-api  | [13:34:31.981] INFO (18): request completed
+mendoraci-api  |     reqId: "req-25"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 0.857804000377655
+mendoraci-api  | [13:34:42.034] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-26"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 42960
+mendoraci-api  |     }
+mendoraci-api  | [13:34:42.036] INFO (18): request completed
+mendoraci-api  |     reqId: "req-26"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 1.2755399942398071
+mendoraci-api  | [13:34:52.090] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-27"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 53570
+mendoraci-api  |     }
+mendoraci-api  | [13:34:52.092] INFO (18): request completed
+mendoraci-api  |     reqId: "req-27"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 1.2114779949188232
+mendoraci-api  | [13:35:02.152] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-28"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 42992
+mendoraci-api  |     }
+mendoraci-api  | [13:35:02.153] INFO (18): request completed
+mendoraci-api  |     reqId: "req-28"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 1.1887759864330292
+mendoraci-api  | [13:35:12.222] INFO (18): incoming request
+mendoraci-api  |     reqId: "req-29"
+mendoraci-api  |     req: {
+mendoraci-api  |       "method": "GET",
+mendoraci-api  |       "url": "/health",
+mendoraci-api  |       "host": "localhost:4000",
+mendoraci-api  |       "remoteAddress": "127.0.0.1",
+mendoraci-api  |       "remotePort": 40664
+mendoraci-api  |     }
+mendoraci-api  | [13:35:12.223] INFO (18): request completed
+mendoraci-api  |     reqId: "req-29"
+mendoraci-api  |     res: {
+mendoraci-api  |       "statusCode": 200
+mendoraci-api  |     }
+mendoraci-api  |     responseTime: 0.9621019959449768
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> date
+
+17 May 2026 14:35:18
+
+
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci>

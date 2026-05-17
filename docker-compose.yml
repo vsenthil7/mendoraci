@@ -138,6 +138,7 @@ services:
     build:
       context: .
       dockerfile: infra/docker/test.Dockerfile
+    container_name: mendoraci-test
     env_file:
       - path: .env
         required: true
@@ -147,6 +148,10 @@ services:
       NODE_ENV: test
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       API_BASE_URL: http://api:4000
+      WEB_BASE_URL: http://web:3000
+      CI: "1"
+    volumes:
+      - ./playwright-report:/app/playwright-report
     depends_on:
       postgres:
         condition: service_healthy

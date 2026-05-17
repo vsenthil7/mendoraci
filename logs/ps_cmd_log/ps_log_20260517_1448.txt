@@ -1,0 +1,253 @@
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   .gitignore
+        modified:   apps/api/src/middleware/error-handler.ts
+        modified:   apps/api/src/middleware/tenant-context.ts
+        modified:   apps/api/src/routes/intake.ts
+        modified:   docker-compose.yml
+        modified:   docs/MendoraCI_Traceability_LIVE.md
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        .env.bob.example
+        scripts/cp2c5_verify.py
+        scripts/set-bob-secrets.ps1
+        scripts/set-bob-secrets.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> git add -A
+warning: in the working copy of '.gitignore', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'apps/api/src/middleware/error-handler.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'apps/api/src/middleware/tenant-context.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'apps/api/src/routes/intake.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docker-compose.yml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/MendoraCI_Traceability_LIVE.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.env.bob.example', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/cp2c5_verify.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/set-bob-secrets.ps1', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/set-bob-secrets.sh', LF will be replaced by CRLF the next time Git touches it
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> git commit -m "fix(api): CP-2c-5 duck-typed ZodError + explicit reply.send envelope + race-free idempotency" -m "B-005: error-handler uses err.name==='ZodError' duck-typing (class identity unsafe across pnpm workspace + dist). B-006: routes use explicit reply.code(N).send({error:{code,message}}) for 400/413/404/422 — no more throw httpErrors. B-007: tenant-context preHandler writes 401 directly. B-008: idempotency = pre-check SELECT then INSERT (race-free under withTenant tx). Adds scripts/cp2c5_verify.py one-command verify (build+up+health+3 smokes+vitest)."
+[main fc6b4ea] fix(api): CP-2c-5 duck-typed ZodError + explicit reply.send envelope + race-free idempotency
+ 10 files changed, 508 insertions(+), 127 deletions(-)
+ create mode 100644 .env.bob.example
+ create mode 100644 scripts/cp2c5_verify.py
+ create mode 100644 scripts/set-bob-secrets.ps1
+ create mode 100644 scripts/set-bob-secrets.sh
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> git push
+Enumerating objects: 33, done.
+Counting objects: 100% (33/33), done.
+Delta compression using up to 12 threads
+Compressing objects: 100% (19/19), done.
+Writing objects: 100% (19/19), 11.17 KiB | 5.58 MiB/s, done.
+Total 19 (delta 10), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (10/10), completed with 10 local objects.
+To https://github.com/vsenthil7/mendoraci.git
+   a05be44..fc6b4ea  main -> main
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> python scripts/cp2c5_verify.py
+
+=== CP-2c-5 verify — rebuild + smoke + integration ===
+
+=== Step 1: docker compose build api ===
+$ docker compose build api
+#1 [internal] load local bake definitions
+#1 reading from stdin 1.23kB done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from api.Dockerfile
+#2 transferring dockerfile: 1.65kB 0.0s done
+#2 DONE 0.0s
+
+#3 [auth] docker/dockerfile:pull token for registry-1.docker.io
+#3 DONE 0.0s
+
+#4 resolve image config for docker-image://docker.io/docker/dockerfile:1.7
+#4 DONE 1.5s
+
+#5 docker-image://docker.io/docker/dockerfile:1.7@sha256:a57df69d0ea827fb7266491f2813635de6f17269be881f696fbfdf2d83dda33e
+#5 resolve docker.io/docker/dockerfile:1.7@sha256:a57df69d0ea827fb7266491f2813635de6f17269be881f696fbfdf2d83dda33e 0.0s done
+#5 CACHED
+
+#6 [internal] load metadata for docker.io/library/node:20-alpine
+#6 ...
+
+#7 [auth] library/node:pull token for registry-1.docker.io
+#7 DONE 0.0s
+
+#6 [internal] load metadata for docker.io/library/node:20-alpine
+#6 DONE 0.7s
+
+#8 [internal] load .dockerignore
+#8 transferring context: 270B done
+#8 DONE 0.0s
+
+#9 [base 1/3] FROM docker.io/library/node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293
+#9 resolve docker.io/library/node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293 0.0s done
+#9 DONE 0.0s
+
+#10 [internal] load build context
+#10 transferring context: 16.98kB 0.1s done
+#10 DONE 0.1s
+
+#11 [deps 6/6] RUN pnpm install --no-frozen-lockfile
+#11 CACHED
+
+#12 [base 3/3] RUN corepack enable && corepack prepare pnpm@9.12.0 --activate && apk add --no-cache wget
+#12 CACHED
+
+#13 [deps 4/6] COPY packages/shared/package.json packages/shared/
+#13 CACHED
+
+#14 [base 2/3] WORKDIR /app
+#14 CACHED
+
+#15 [deps 1/6] COPY package.json pnpm-workspace.yaml ./
+#15 CACHED
+
+#16 [deps 2/6] COPY apps/api/package.json apps/api/
+#16 CACHED
+
+#17 [deps 3/6] COPY apps/web/package.json apps/web/
+#17 CACHED
+
+#18 [deps 5/6] COPY packages/mask-policy/package.json packages/mask-policy/
+#18 CACHED
+
+#19 [dev 1/5] COPY tsconfig.base.json ./
+#19 CACHED
+
+#20 [dev 2/5] COPY apps/api ./apps/api
+#20 DONE 0.1s
+
+#21 [dev 3/5] COPY packages ./packages
+#21 DONE 0.1s
+
+#22 [dev 4/5] RUN pnpm --filter @mendoraci/shared build  && pnpm --filter @mendoraci/mask-policy build
+#22 1.347
+#22 1.347 > @mendoraci/shared@0.1.0 build /app/packages/shared
+#22 1.347 > tsc -p tsconfig.json
+#22 1.347
+#22 2.784
+#22 2.784 > @mendoraci/mask-policy@1.0.0 build /app/packages/mask-policy
+#22 2.784 > tsc -p tsconfig.json
+#22 2.784
+#22 DONE 3.9s
+
+#23 [dev 5/5] WORKDIR /app/apps/api
+#23 DONE 0.1s
+
+#24 exporting to image
+#24 exporting layers
+#24 exporting layers 0.3s done
+#24 exporting manifest sha256:31eb41292c1f2e192725e4a693dd28c24fe5cffbca7853c91f9f3169c71eec88 0.0s done
+#24 exporting config sha256:f7466f1d08e40e3a1fa170ebd1a305446261fba7a76a6f506217446e7e72f01e 0.0s done
+#24 exporting attestation manifest sha256:c8ce17a647f0cdb87bf78625e6cad81f452f7f3d7705016c37ccea13c7b5b748 0.0s done
+#24 exporting manifest list sha256:cd77c9c8ba5ee7dc3f63bb7b1441b192d7c83534d58cf242023ed67986a1e9c6
+#24 exporting manifest list sha256:cd77c9c8ba5ee7dc3f63bb7b1441b192d7c83534d58cf242023ed67986a1e9c6 0.0s done
+#24 naming to docker.io/library/mendoraci-api:latest done
+#24 unpacking to docker.io/library/mendoraci-api:latest 0.1s done
+#24 DONE 0.6s
+
+#25 resolving provenance for metadata file
+#25 DONE 0.0s
+[+] build 1/2
+ - Image mendoraci-api-migrate Building                                                                             8.3s
+ ✔ Image mendoraci-api         Built                                                                                8.3s
+
+=== Step 2: docker compose up -d ===
+$ docker compose up -d
+[+] up 7/7
+ ✔ Container mendoraci-minio        Healthy                                                                         1.8s
+ ✔ Container mendoraci-postgres     Healthy                                                                         2.7s
+ ✔ Container mendoraci-redis        Healthy                                                                         2.7s
+ ✔ Container mendoraci-api          Healthy                                                                        15.0s
+ ✔ Container mendoraci-web          Running                                                                         0.0s
+ ✔ Container mendoraci-api-migrate  Exited                                                                          2.4s
+ ✔ Container mendoraci-minio-init-1 Exited                                                                          1.4s
+
+=== Step 3: wait for api healthy ===
+api healthy after 0s
+
+=== Step 4: smoke — missing idempotency-key → expect 400 + error.code ===
+status=400 body={'error': {'code': 'idempotency_key_required', 'message': 'Idempotency-Key header is required (8-256 chars)'}}
+smoke 4 OK
+
+=== Step 5: smoke — missing x-tenant-id → expect 401 + error.code='unauthorized' ===
+status=401 body={'error': {'code': 'unauthorized', 'message': 'missing_or_invalid_tenant_id'}}
+smoke 5 OK
+
+=== Step 6: smoke — bad schema → expect 422 + error.code='validation_failed' ===
+status=422 body={'error': {'code': 'validation_failed', 'message': 'request_body_invalid', 'validation_errors': [{'path': 'provider', 'message': "Invalid enum value. Expected 'github' | 'jenkins' | 'circleci' | 'gitlab' | 'buildkite', received 'not-a-valid-ci'"}, {'path': 'run_id', 'message': 'String must contain at least 1 character(s)'}, {'path': 'attempt_id', 'message': 'String must contain at least 1 character(s)'}, {'path': 'artifact', 'message': 'Required'}]}}
+smoke 6 OK
+
+=== Step 7: vitest integration inside the api container ===
+$ docker compose exec -T -e NODE_ENV=test -e LOG_LEVEL=error api sh -c cd /app/apps/api && pnpm exec vitest run test/integration --reporter=verbose
+
+ RUN  v2.1.9 /app/apps/api
+
+ ✓ test/integration/intake.test.ts > Intake routes (CP-2 integration) > TEST-001: happy path returns 201 with intake_id + masked status
+ ✓ test/integration/intake.test.ts > Intake routes (CP-2 integration) > TEST-001 (masking): AWS access key is masked in body_masked_preview
+ ✓ test/integration/intake.test.ts > Intake routes (CP-2 integration) > TEST-001-A: replaying the same (provider, run_id, attempt_id) returns the same intake_id
+ ✓ test/integration/intake.test.ts > Intake routes (CP-2 integration) > TEST-002: malformed body returns 422 with validation_errors[]
+ ✓ test/integration/intake.test.ts > Intake routes (CP-2 integration) > TEST-003: missing X-Tenant-Id header returns 401
+ ✓ test/integration/intake.test.ts > Intake routes (CP-2 integration) > TEST-003 (invalid tenant): non-UUID X-Tenant-Id returns 401
+ ✓ test/integration/intake.test.ts > Intake routes (CP-2 integration) > TEST-004: artifact larger than 50 MB returns 413 2493ms
+ ✓ test/integration/intake.test.ts > Intake routes (CP-2 integration) > TEST-015: missing Idempotency-Key returns 400
+
+ Test Files  1 passed (1)
+      Tests  8 passed (8)
+   Start at  13:47:33
+   Duration  3.44s (transform 149ms, setup 0ms, collect 312ms, tests 2.93s, environment 0ms, prepare 68ms)
+
+
+=== ALL GREEN — RT-001 + RT-013 + RT-015 tested-passing ===
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci>
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci>
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci>
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> date
+
+17 May 2026 14:47:51
+
+
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci>
+
+
+
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> date
+
+17 May 2026 14:49:21
+
+
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> .\scripts\set-bob-secrets.ps1
+
+MendoraCI - Set IBM Bob AI credentials (.env.bob)
+Repo: C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci
+
+BOB_API_URL (e.g. https://us-south.ml.cloud.ibm.com): dont know
+BOB_API_KEY (IBM Cloud IAM API key): *******************************************************************************************************************************************************
+BOB_PROJECT_ID  (leave blank if using deployment_id):
+BOB_DEPLOYMENT_ID (leave blank if using project_id):
+BOB_MODEL_ID (default: ibm/granite-13b-instruct-v2):
+C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci\scripts\set-bob-secrets.ps1 : At least
+one of BOB_PROJECT_ID or BOB_DEPLOYMENT_ID must be provided.
+At line:1 char:1
++ .\scripts\set-bob-secrets.ps1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorException
+    + FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorException,set-bob-secrets.ps1
+
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> # It prompts you securely, writes .env.bob (gitignored), flips USE_MOCK_BOB=false, restarts api.
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> docker compose exec api env | findstr BOB_   # verify
+BOB_MODEL_ID=bob-default
+BOB_API_URL=
+BOB_API_KEY=
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> date
+
+17 May 2026 14:54:15
+
+
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci>

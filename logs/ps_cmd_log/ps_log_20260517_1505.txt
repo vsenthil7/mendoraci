@@ -1,0 +1,173 @@
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> date
+
+17 May 2026 14:49:21
+
+
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> .\scripts\set-bob-secrets.ps1
+
+MendoraCI - Set IBM Bob AI credentials (.env.bob)
+Repo: C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci
+
+BOB_API_URL (e.g. https://us-south.ml.cloud.ibm.com): dont know
+BOB_API_KEY (IBM Cloud IAM API key): *******************************************************************************************************************************************************
+BOB_PROJECT_ID  (leave blank if using deployment_id):
+BOB_DEPLOYMENT_ID (leave blank if using project_id):
+BOB_MODEL_ID (default: ibm/granite-13b-instruct-v2):
+C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci\scripts\set-bob-secrets.ps1 : At least
+one of BOB_PROJECT_ID or BOB_DEPLOYMENT_ID must be provided.
+At line:1 char:1
++ .\scripts\set-bob-secrets.ps1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorException
+    + FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorException,set-bob-secrets.ps1
+
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> # It prompts you securely, writes .env.bob (gitignored), flips USE_MOCK_BOB=false, restarts api.
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> docker compose exec api env | findstr BOB_   # verify
+BOB_MODEL_ID=bob-default
+BOB_API_URL=
+BOB_API_KEY=
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> date
+
+17 May 2026 14:54:15
+
+
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci>
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci>
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci>
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci>
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci>
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci>
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci>
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci>
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci>
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci>
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci>
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci>
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci>
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci>
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci>
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci>
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci>
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci>
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> date
+
+17 May 2026 14:59:17
+
+
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> cd C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci>
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> # 1. Commit + push the traceability flip + bob v2 + discover script
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   docs/MendoraCI_Traceability_LIVE.md
+        modified:   scripts/set-bob-secrets.ps1
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        scripts/bob_discover.ps1
+
+no changes added to commit (use "git add" and/or "git commit -a")
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> git add -A
+warning: in the working copy of 'docs/MendoraCI_Traceability_LIVE.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/set-bob-secrets.ps1', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/bob_discover.ps1', LF will be replaced by CRLF the next time Git touches it
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> git status --short
+M  docs/MendoraCI_Traceability_LIVE.md
+A  scripts/bob_discover.ps1
+M  scripts/set-bob-secrets.ps1
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> git commit -m "chore(cp-2c-6): flip RT-001/013/015 to tested-passing + bob v2 + bob_discover" `
+>>            -m "RT-001 CI Log Intake, RT-013 Multi-Tenant Isolation, RT-015 Idempotency: 8/8 vitest integration green inside live api container. fc6b4ea verified." `
+>>            -m "scripts/set-bob-secrets.ps1 v2: relaxed prompts. URL defaults to us-south. project_id and deployment_id both optional. USE_MOCK_BOB stays true while incomplete, keeping api healthy." `
+>>            -m "scripts/bob_discover.ps1: exchanges API key -> IAM token, probes 6 WatsonX regions, lists accessible projects, writes complete .env.bob, restarts api."
+[main 64b8e87] chore(cp-2c-6): flip RT-001/013/015 to tested-passing + bob v2 + bob_discover
+ 3 files changed, 331 insertions(+), 83 deletions(-)
+ create mode 100644 scripts/bob_discover.ps1
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> git push
+Enumerating objects: 12, done.
+Counting objects: 100% (12/12), done.
+Delta compression using up to 12 threads
+Compressing objects: 100% (7/7), done.
+Writing objects: 100% (7/7), 7.42 KiB | 7.42 MiB/s, done.
+Total 7 (delta 4), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (4/4), completed with 4 local objects.
+To https://github.com/vsenthil7/mendoraci.git
+   fc6b4ea..64b8e87  main -> main
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci>
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> # 2. Re-run bob secrets (URL will default, project/deployment can stay blank)
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> .\scripts\set-bob-secrets.ps1
+
+MendoraCI - Set IBM Bob AI credentials (.env.bob)
+Repo: C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci
+
+BOB_API_URL (blank = https://us-south.ml.cloud.ibm.com):
+BOB_API_KEY (IBM Cloud IAM API key, required): *******************************************************************************************************************************************************
+BOB_PROJECT_ID    (optional, blank ok - discover later):
+BOB_DEPLOYMENT_ID (optional, blank ok):
+BOB_MODEL_ID (default: ibm/granite-13b-instruct-v2):
+
+Wrote C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci\.env.bob (gitignored)
+USE_MOCK_BOB=true
+
+No project_id/deployment_id yet -> mock mode stays on.
+Run .\scripts\bob_discover.ps1 next to fetch them from IBM Cloud using your key.
+Mirrored USE_MOCK_BOB=true in C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci\.env
+
+Restarting api container so new env is loaded...
+ Container mendoraci-postgres Running
+ Container mendoraci-minio Running
+ Container mendoraci-redis Running
+ Container mendoraci-api Recreate
+ Container mendoraci-api Recreated
+ Container mendoraci-postgres Waiting
+ Container mendoraci-minio Waiting
+ Container mendoraci-postgres Healthy
+ Container mendoraci-minio Healthy
+ Container mendoraci-api-migrate Starting
+ Container mendoraci-minio-init-1 Starting
+ Container mendoraci-api-migrate Started
+ Container mendoraci-minio-init-1 Started
+ Container mendoraci-api-migrate Waiting
+ Container mendoraci-postgres Waiting
+ Container mendoraci-redis Waiting
+ Container mendoraci-minio-init-1 Waiting
+ Container mendoraci-redis Healthy
+ Container mendoraci-postgres Healthy
+ Container mendoraci-minio-init-1 Exited
+ Container mendoraci-api-migrate Exited
+ Container mendoraci-api Starting
+ Container mendoraci-api Started
+
+Verify (BOB_API_KEY value hidden):
+sh: syntax error: unexpected ";"
+
+What's next:
+    Debug this Compose error with Gordon → docker ai "help me fix this compose error"
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> #    BOB_API_URL: <blank>     (becomes https://us-south.ml.cloud.ibm.com)
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> #    BOB_API_KEY: <paste key>
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> #    BOB_PROJECT_ID: <blank>
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> #    BOB_DEPLOYMENT_ID: <blank>
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> #    BOB_MODEL_ID: <blank>    (becomes ibm/granite-13b-instruct-v2)
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> # -> USE_MOCK_BOB stays true, api restarts cleanly.
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci>
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> # 3. (optional, do later) Discover URL + project_id from the key
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> .\scripts\bob_discover.ps1
+1) Exchanging API key for IAM bearer token...
+C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci\scripts\bob_discover.ps1 : IAM token
+exchange failed: The remote server returned an error: (400) Bad Request.. Check the API key.
+At line:1 char:1
++ .\scripts\bob_discover.ps1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorException
+    + FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorException,bob_discover.ps1
+
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> date
+
+17 May 2026 14:59:47
+
+
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci>
