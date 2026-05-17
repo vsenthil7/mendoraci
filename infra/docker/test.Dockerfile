@@ -1,6 +1,9 @@
 # syntax=docker/dockerfile:1.7
 # Playwright test runner image — official MS image has chromium/firefox/webkit pre-installed.
-FROM mcr.microsoft.com/playwright:v1.48.0-jammy
+# CP-3f: image bumped 1.48.0 -> 1.60.0 to match whatever @playwright/test pnpm
+# resolves at install time. Trying to pin pnpm to 1.48.0 in package.json was
+# fighting upstream; tracking the latest LTS playwright instead.
+FROM mcr.microsoft.com/playwright:v1.60.0-jammy
 
 WORKDIR /app
 ENV PNPM_HOME=/usr/local/share/pnpm \
