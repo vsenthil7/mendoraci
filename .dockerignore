@@ -1,0 +1,17 @@
+# Files NOT to send to the docker build context.
+**/node_modules
+**/dist
+**/.next
+**/coverage
+**/.pnpm-store
+**/.turbo
+**/playwright-report
+**/test-results
+**/.cache
+infra/data
+.git
+.github
+**/*.log
+.env
+.env.local
+.env.*.local
