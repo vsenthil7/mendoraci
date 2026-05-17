@@ -1,10 +1,12 @@
-# MendoraCI - Bob/WatsonX discovery helper. v2.
+# MendoraCI - Bob/WatsonX discovery helper. v3.
 #
-# v2 fixes:
-#  - IAM token call now passes a hashtable to -Body (PS handles form encoding).
-#    v1 passed a pre-encoded string which PS re-encoded, breaking the grant_type
-#    URN's colons and producing 400 Bad Request.
-#  - Adds explicit diagnostics on each step so we can see exactly where it stops.
+# v3 fixes:
+#  - Removed PS7-only `??` operator (line 121). Now uses if/else block.
+#  - All PowerShell 5.1+ compatible.
+#  - More verbose error output so we can see exactly what IBM Cloud returned.
+#
+# v2 fixes (still in):
+#  - IAM token call passes a hashtable to -Body (PS handles form encoding).
 #  - Reads .env.bob defensively (BOM-tolerant).
 #
 # Usage:
@@ -27,7 +29,7 @@ if (-not (Test-Path $envBobPath)) {
 # Parse .env.bob (BOM-tolerant)
 $envMap = @{}
 foreach ($raw in (Get-Content $envBobPath)) {
-  $line = $raw -replace "^\xEF\xBB\xBF", ""   # strip UTF-8 BOM if present
+  $line = $raw -replace "^\xEF\xBB\xBF", ""
   if ($line -match '^\s*#') { continue }
   if ($line -match '^\s*([A-Z0-9_]+)=(.*)$') { $envMap[$Matches[1]] = $Matches[2] }
 }
@@ -39,7 +41,7 @@ if ([string]::IsNullOrWhiteSpace($apiKey)) {
 Write-Host "Loaded API key (length=$($apiKey.Length))" -ForegroundColor DarkGray
 
 # ---------------------------------------------------------------------------
-# 1) IAM token exchange — use hashtable body so PS encodes properly
+# 1) IAM token exchange
 # ---------------------------------------------------------------------------
 Write-Host ""
 Write-Host "1) Exchanging API key for IAM bearer token..." -ForegroundColor Cyan
@@ -57,7 +59,8 @@ try {
     -Body $iamBody
 } catch {
   $resp = $_.Exception.Response
-  $code = $null; $bodyText = ""
+  $code = $null
+  $bodyText = ""
   if ($resp -ne $null) {
     $code = $resp.StatusCode.value__
     try {
@@ -67,7 +70,16 @@ try {
   }
   Write-Host ("   IAM call failed: HTTP {0}" -f $code) -ForegroundColor Red
   if ($bodyText) { Write-Host "   Body: $bodyText" -ForegroundColor Red }
-  Write-Error "IAM token exchange failed. Most common cause: API key copy-paste lost characters, or extra whitespace. Re-run .\scripts\set-bob-secrets.ps1 and re-paste."
+  Write-Host ""
+  Write-Host "Most common causes:" -ForegroundColor Yellow
+  Write-Host "  1. The key is a WatsonX/Bob-platform key (not an IBM Cloud IAM key)." -ForegroundColor Yellow
+  Write-Host "     IBM Cloud IAM keys are 44 random chars starting with random characters." -ForegroundColor Yellow
+  Write-Host "     Your key length is $($apiKey.Length); WatsonX platform keys are usually >100 chars." -ForegroundColor Yellow
+  Write-Host "  2. The key was generated for the wrong account." -ForegroundColor Yellow
+  Write-Host ""
+  Write-Host "Fix: generate a new IAM API key at:" -ForegroundColor Yellow
+  Write-Host "     https://cloud.ibm.com/iam/apikeys" -ForegroundColor Yellow
+  Write-Host "     Then re-run .\scripts\set-bob-secrets.ps1 and paste it." -ForegroundColor Yellow
   exit 2
 }
 
@@ -75,11 +87,12 @@ $token = $iamResp.access_token
 if ([string]::IsNullOrWhiteSpace($token)) { Write-Error "No access_token returned."; exit 2 }
 Write-Host "   IAM token OK (length=$($token.Length))" -ForegroundColor Green
 
-# Inspect token claims so we know which IBM Cloud account we're scoped to
+# Inspect token claims
 try {
   $parts = $token.Split('.')
   if ($parts.Count -ge 2) {
-    $pad = ($parts[1].Length % 4); if ($pad) { $pad = 4 - $pad } else { $pad = 0 }
+    $pad = ($parts[1].Length % 4)
+    if ($pad) { $pad = 4 - $pad } else { $pad = 0 }
     $b64 = $parts[1] + ('=' * $pad)
     $b64 = $b64.Replace('-', '+').Replace('_', '/')
     $payloadJson = [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($b64))
@@ -113,12 +126,14 @@ foreach ($r in $regions) {
     Write-Host ("   {0,-8} reachable (HTTP {1})" -f $r.name, $resp.StatusCode) -ForegroundColor Green
     $found += $r
   } catch {
-    $code = ($_.Exception.Response).StatusCode.value__
+    $errResp = $_.Exception.Response
+    $code = "net err"
+    if ($errResp -ne $null) { $code = $errResp.StatusCode.value__ }
     if ($code -in 401, 403) {
       Write-Host ("   {0,-8} reachable (auth {1}, still OK)" -f $r.name, $code) -ForegroundColor DarkYellow
       $found += $r
     } else {
-      Write-Host ("   {0,-8} unreachable ({1})" -f $r.name, ($code ?? "net err")) -ForegroundColor DarkGray
+      Write-Host ("   {0,-8} unreachable ({1})" -f $r.name, $code) -ForegroundColor DarkGray
     }
   }
 }
@@ -156,7 +171,9 @@ try {
     -Headers @{ "Authorization" = "Bearer $token"; "Accept" = "application/json" }
   $projects = @($resp.resources)
 } catch {
-  $code = ($_.Exception.Response).StatusCode.value__
+  $errResp2 = $_.Exception.Response
+  $code = "net err"
+  if ($errResp2 -ne $null) { $code = $errResp2.StatusCode.value__ }
   Write-Host ("   Project list failed (HTTP {0}). You can still paste project_id manually." -f $code) -ForegroundColor Yellow
 }
 
@@ -189,7 +206,11 @@ if ([string]::IsNullOrWhiteSpace($chosenProject)) {
 $envMap['BOB_API_URL']       = $pickedRegion.url
 $envMap['BOB_PROJECT_ID']    = $chosenProject
 $envMap['BOB_DEPLOYMENT_ID'] = $chosenDeployment
-$envMap['USE_MOCK_BOB']      = if ([string]::IsNullOrWhiteSpace($chosenProject) -and [string]::IsNullOrWhiteSpace($chosenDeployment)) { "true" } else { "false" }
+if ([string]::IsNullOrWhiteSpace($chosenProject) -and [string]::IsNullOrWhiteSpace($chosenDeployment)) {
+  $envMap['USE_MOCK_BOB'] = "true"
+} else {
+  $envMap['USE_MOCK_BOB'] = "false"
+}
 
 $out = @(
   "BOB_API_URL=$($envMap['BOB_API_URL'])",
@@ -212,13 +233,13 @@ Write-Host "  USE_MOCK_BOB      = $($envMap['USE_MOCK_BOB'])"
 
 $envPath = Join-Path $repoRoot ".env"
 if (Test-Path $envPath) {
-  $env = Get-Content $envPath -Raw
-  if ($env -match "USE_MOCK_BOB=") {
-    $env = $env -replace "USE_MOCK_BOB=.*", "USE_MOCK_BOB=$($envMap['USE_MOCK_BOB'])"
+  $envContent = Get-Content $envPath -Raw
+  if ($envContent -match "USE_MOCK_BOB=") {
+    $envContent = $envContent -replace "USE_MOCK_BOB=.*", "USE_MOCK_BOB=$($envMap['USE_MOCK_BOB'])"
   } else {
-    $env = $env.TrimEnd("`r","`n") + "`nUSE_MOCK_BOB=$($envMap['USE_MOCK_BOB'])`n"
+    $envContent = $envContent.TrimEnd("`r", "`n") + "`nUSE_MOCK_BOB=$($envMap['USE_MOCK_BOB'])`n"
   }
-  Set-Content -Path $envPath -Value $env -Encoding UTF8 -NoNewline
+  Set-Content -Path $envPath -Value $envContent -Encoding UTF8 -NoNewline
 }
 
 Write-Host ""
