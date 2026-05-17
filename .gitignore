@@ -5,6 +5,7 @@ build/
 coverage/
 .turbo/
 .cache/
+.pnpm-store/
 .env
 .env.local
 .env.*.local
