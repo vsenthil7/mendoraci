@@ -75,7 +75,8 @@ services:
       dockerfile: infra/docker/api.Dockerfile
       target: dev
     container_name: mendoraci-api-migrate
-    env_file: .env
+    env_file:
+      - .env
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
     depends_on:
@@ -90,7 +91,11 @@ services:
       dockerfile: infra/docker/api.Dockerfile
       target: dev
     container_name: mendoraci-api
-    env_file: .env
+    env_file:
+      - path: .env
+        required: true
+      - path: .env.bob
+        required: false
     environment:
       NODE_ENV: development
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
@@ -117,7 +122,8 @@ services:
       dockerfile: infra/docker/web.Dockerfile
       target: dev
     container_name: mendoraci-web
-    env_file: .env
+    env_file:
+      - .env
     environment:
       NODE_ENV: development
       NEXT_PUBLIC_API_BASE_URL: http://api:4000
@@ -132,7 +138,11 @@ services:
     build:
       context: .
       dockerfile: infra/docker/test.Dockerfile
-    env_file: .env
+    env_file:
+      - path: .env
+        required: true
+      - path: .env.bob
+        required: false
     environment:
       NODE_ENV: test
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}

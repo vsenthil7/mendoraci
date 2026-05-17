@@ -1,4 +1,4 @@
-import type { FastifyPluginAsync, FastifyRequest } from 'fastify';
+import type { FastifyPluginAsync, FastifyRequest, FastifyReply } from 'fastify';
 import fp from 'fastify-plugin';
 
 /**
@@ -12,6 +12,10 @@ import fp from 'fastify-plugin';
  *   1. Reads X-Tenant-Id from the request.
  *   2. Validates it as a UUID.
  *   3. Attaches it to request.tenantId for handlers + db.withTenant().
+ *
+ * CP-2c-5: writes the 401 response directly (no `throw httpErrors.unauthorized`)
+ * so the contract envelope `{error:{code,message}}` is guaranteed regardless of
+ * Fastify error-flow.
  *
  * Anchors: RT-013 Multi-Tenant Isolation, RT-014 Role/Permission Model (stub).
  */
@@ -31,7 +35,7 @@ function isUuid(s: string): boolean {
 const tenantContextAsync: FastifyPluginAsync = async (app) => {
   app.decorateRequest('tenantId', '');
 
-  app.addHook('preHandler', async (request: FastifyRequest) => {
+  app.addHook('preHandler', async (request: FastifyRequest, reply: FastifyReply) => {
     // Health endpoint is exempt.
     if (request.url === '/health' || request.url.startsWith('/health?')) return;
 
@@ -39,7 +43,14 @@ const tenantContextAsync: FastifyPluginAsync = async (app) => {
     const value = Array.isArray(headerTenant) ? headerTenant[0] : headerTenant;
 
     if (!value || typeof value !== 'string' || !isUuid(value)) {
-      throw app.httpErrors.unauthorized('missing_or_invalid_tenant_id');
+      // Direct reply ensures envelope shape regardless of error-handler propagation.
+      await reply.code(401).type('application/json').send({
+        error: {
+          code: 'unauthorized',
+          message: 'missing_or_invalid_tenant_id',
+        },
+      });
+      return reply;
     }
 
     request.tenantId = value;

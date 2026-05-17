@@ -13,7 +13,13 @@
  *   - TEST-002 schema validation - 422 on invalid
  *   - TEST-003 unsigned/missing tenant - 401 (via tenant-context middleware)
  *   - TEST-004 oversized payload - 413
+ *   - TEST-015 missing idempotency-key - 400
  *   - TEST-024 mask engine failure - 500 mask_engine_failure (via error handler)
+ *
+ * DESIGN NOTE (CP-2c-5): all client errors here are returned via explicit
+ * `reply.code(N).send({error:{code,message}})` to remove any dependency on
+ * Fastify error-handler propagation paths. The setErrorHandler is still
+ * registered as a safety net for unexpected throws (DB errors, mask blocks).
  */
 import type { FastifyPluginAsync } from 'fastify';
 import { randomUUID } from 'node:crypto';
@@ -29,8 +35,31 @@ import { applyMaskOrThrow } from '@mendoraci/mask-policy';
 const IDEMPOTENCY_WINDOW_SECONDS = 24 * 60 * 60; // 24h dedupe per spec
 
 function decodeArtifactBody(b64: string): Buffer {
-  // Strict base64; throws on bad input which the error handler turns into 422.
   return Buffer.from(b64, 'base64');
+}
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function err400(reply: any, code: string, message: string) {
+  return reply.code(400).type('application/json').send({ error: { code, message } });
+}
+function err413(reply: any, code: string, message: string) {
+  return reply.code(413).type('application/json').send({ error: { code, message } });
+}
+function err422Zod(reply: any, issues: ReadonlyArray<{ path: (string | number)[]; message: string }>) {
+  return reply.code(422).type('application/json').send({
+    error: {
+      code: 'validation_failed',
+      message: 'request_body_invalid',
+      validation_errors: issues.map((i) => ({
+        path: Array.isArray(i.path) ? i.path.join('.') : String(i.path ?? ''),
+        message: String(i.message ?? ''),
+      })),
+    },
+  });
+}
+function err404(reply: any, code: string, message: string) {
+  return reply.code(404).type('application/json').send({ error: { code, message } });
 }
 
 export const intakeRoutes: FastifyPluginAsync = async (app) => {
@@ -38,66 +67,58 @@ export const intakeRoutes: FastifyPluginAsync = async (app) => {
   // API-001 POST /intake
   // ---------------------------------------------------------------------------
   app.post('/intake', async (request, reply) => {
-    // Idempotency-Key REQUIRED for writes (RT-015 / TEST-001-A).
+    // -- 1. Idempotency-Key REQUIRED for writes (RT-015 / TEST-015)
     const idemKeyRaw = request.headers['idempotency-key'];
     const idemKey = Array.isArray(idemKeyRaw) ? idemKeyRaw[0] : idemKeyRaw;
     if (!idemKey || typeof idemKey !== 'string' || idemKey.length < 8 || idemKey.length > 256) {
-      throw app.httpErrors.badRequest('idempotency_key_required');
+      return err400(reply, 'idempotency_key_required', 'Idempotency-Key header is required (8-256 chars)');
     }
 
-    // Schema validation (TEST-002 → 422).
-    const parsed = IntakeRequestV1.parse(request.body);
+    // -- 2. Schema validation (TEST-002) — safeParse so we hand a typed ZodError shape
+    const parseResult = IntakeRequestV1.safeParse(request.body);
+    if (!parseResult.success) {
+      return err422Zod(reply, parseResult.error.issues);
+    }
+    const parsed = parseResult.data;
 
-    // Decode artifact body and enforce 50 MB hard cap (TEST-004 → 413).
+    // -- 3. Decode + 50 MB cap (TEST-004)
     const bodyBuf = decodeArtifactBody(parsed.artifact.body_base64);
     if (bodyBuf.length > MAX_ARTIFACT_BYTES) {
-      throw app.httpErrors.payloadTooLarge('artifact_exceeds_50mb');
+      return err413(reply, 'artifact_exceeds_50mb', 'artifact body exceeds the 50 MB limit');
     }
     const bodyRaw = bodyBuf.toString('utf8');
 
-    // Mask BEFORE persist (RT-008 / BR-008 / TEST-024). Throws MaskBlockedError on engine failure.
+    // -- 4. Mask BEFORE persist (RT-008 / BR-008 / TEST-024). MaskBlockedError → handler → 500
     const masked = await applyMaskOrThrow(bodyRaw);
 
     const intakeId = randomUUID();
     const receivedAt = new Date().toISOString();
 
+    // -- 5. DB write with RLS tenant context
     const result = await app.withTenant(request.tenantId, async (client) => {
-      // --- Idempotency check (RT-015) -----------------------------------------
-      // Compose dedupe key per spec: (tenant_id, provider, run_id, attempt_id) within 24h.
       const dedupeKey = `${parsed.provider}:${parsed.run_id}:${parsed.attempt_id}`;
-      const dedupe = await client.query<{ idempotency_key: string; intake_id: string }>(
-        `INSERT INTO idempotency_keys (tenant_id, idempotency_key, dedupe_key, intake_id, expires_at)
-         VALUES ($1, $2, $3, $4, NOW() + INTERVAL '${IDEMPOTENCY_WINDOW_SECONDS} seconds')
-         ON CONFLICT (tenant_id, dedupe_key) WHERE expires_at > NOW()
-         DO NOTHING
-         RETURNING idempotency_key, intake_id`,
-        [request.tenantId, idemKey, dedupeKey, intakeId],
-      );
 
-      if (dedupe.rowCount === 0) {
-        // Replay: return the original intake_id.
-        const existing = await client.query<{ intake_id: string; status: IntakeStatus; received_at: Date }>(
-          `SELECT intake_id, status, received_at
-           FROM idempotency_keys k
-           JOIN intake_meta m ON m.intake_id = k.intake_id
-           WHERE k.tenant_id = $1 AND k.dedupe_key = $2 AND k.expires_at > NOW()
-           LIMIT 1`,
-          [request.tenantId, dedupeKey],
-        );
+      // Check active dedupe row first (avoid INSERT-then-detect race)
+      const existing = await client.query<{ intake_id: string; status: IntakeStatus; received_at: Date }>(
+        `SELECT m.intake_id, m.status, m.received_at
+         FROM idempotency_keys k
+         JOIN intake_meta m ON m.intake_id = k.intake_id
+         WHERE k.tenant_id = $1 AND k.dedupe_key = $2 AND k.expires_at > NOW()
+         LIMIT 1`,
+        [request.tenantId, dedupeKey],
+      );
+      if (existing.rowCount && existing.rows[0]) {
         const row = existing.rows[0];
-        if (row) {
-          return {
-            intake_id: row.intake_id,
-            status: row.status,
-            mask_policy_version: masked.policyVersion,
-            received_at: row.received_at.toISOString(),
-            replay: true as const,
-          };
-        }
-        // Edge: idempotency row exists but intake_meta missing — race; fall through to fresh insert.
+        return {
+          intake_id: row.intake_id,
+          status: row.status,
+          mask_policy_version: masked.policyVersion,
+          received_at: row.received_at.toISOString(),
+          replay: true as const,
+        };
       }
 
-      // --- Fresh insert: raw_intake + intake_meta -----------------------------
+      // Fresh insert: raw_intake + intake_meta + idempotency_keys
       await client.query(
         `INSERT INTO raw_intake (intake_id, tenant_id, body_masked, mask_policy_version, received_at,
                                  provider, size_bytes, lineage_chain)
@@ -137,6 +158,12 @@ export const intakeRoutes: FastifyPluginAsync = async (app) => {
         ],
       );
 
+      await client.query(
+        `INSERT INTO idempotency_keys (tenant_id, idempotency_key, dedupe_key, intake_id, expires_at)
+         VALUES ($1, $2, $3, $4, NOW() + INTERVAL '${IDEMPOTENCY_WINDOW_SECONDS} seconds')`,
+        [request.tenantId, idemKey, dedupeKey, intakeId],
+      );
+
       return {
         intake_id: intakeId,
         status: 'masked' satisfies IntakeStatus,
@@ -153,7 +180,7 @@ export const intakeRoutes: FastifyPluginAsync = async (app) => {
       received_at: result.received_at,
     });
 
-    reply.code(result.replay ? 200 : 201).send(response);
+    return reply.code(result.replay ? 200 : 201).send(response);
   });
 
   // ---------------------------------------------------------------------------
@@ -161,8 +188,8 @@ export const intakeRoutes: FastifyPluginAsync = async (app) => {
   // ---------------------------------------------------------------------------
   app.get<{ Params: { id: string } }>('/intake/:id', async (request, reply) => {
     const { id } = request.params;
-    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
-      throw app.httpErrors.badRequest('invalid_intake_id');
+    if (!UUID_RE.test(id)) {
+      return err400(reply, 'invalid_intake_id', 'intake_id must be a UUID');
     }
 
     const detail = await app.withTenant(request.tenantId, async (client) => {
@@ -194,7 +221,7 @@ export const intakeRoutes: FastifyPluginAsync = async (app) => {
     });
 
     if (!detail) {
-      throw app.httpErrors.notFound('intake_not_found');
+      return err404(reply, 'intake_not_found', 'no intake found for this id');
     }
 
     const preview = detail.body_masked.slice(0, 4096);
@@ -217,6 +244,6 @@ export const intakeRoutes: FastifyPluginAsync = async (app) => {
       mask_policy_version: detail.mask_policy_version,
     });
 
-    reply.code(200).send(out);
+    return reply.code(200).send(out);
   });
 };

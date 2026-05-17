@@ -6,10 +6,16 @@ coverage/
 .turbo/
 .cache/
 .pnpm-store/
+
+# Environment files — never commit secrets
 .env
 .env.local
 .env.*.local
+.env.bob
+.env.bob.*
 !.env.example
+!.env.bob.example
+
 *.log
 .DS_Store
 Thumbs.db
