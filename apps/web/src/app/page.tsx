@@ -1,59 +1,17 @@
 'use client';
 import { useState } from 'react';
+import { randomIdempotencyKey, DEMO_TENANT_ID } from '../lib/client';
 
 /**
  * SCR-001 — CI Log Intake (Phase 1 minimal).
  * Anchors: RT-001 (BR-001), RT-008 mask preview, RT-015 idempotency-key client-side.
- * Full three-pane wireframe (intake history table, detail drawer) is CP-3.
+ * Full three-pane wireframe (intake history table, detail drawer) is CP-3+.
  */
-
-/**
- * randomIdempotencyKey — secure-context-safe UUID v4 generator.
- *
- * crypto.randomUUID() is only available in *secure contexts* (https or
- * http://localhost). When the page is loaded via http://web:3000 (the docker
- * internal hostname used by Playwright in-container), Chromium/Firefox/WebKit
- * all treat it as non-secure and `crypto.randomUUID` is undefined, throwing
- * TypeError. We use it when available, otherwise fall back to a
- * crypto.getRandomValues-based v4 builder (available on all modern browsers
- * regardless of secure context), and as a last resort Math.random.
- */
-function randomIdempotencyKey(): string {
-  // Try secure-context UUID first
-  try {
-    const c = (globalThis as { crypto?: { randomUUID?: () => string } }).crypto;
-    if (c && typeof c.randomUUID === 'function') {
-      return `k-${c.randomUUID()}`;
-    }
-  } catch {
-    /* fall through */
-  }
-  // crypto.getRandomValues is available in non-secure contexts on every modern browser
-  try {
-    const c = (globalThis as {
-      crypto?: { getRandomValues?: (a: Uint8Array) => Uint8Array };
-    }).crypto;
-    if (c && typeof c.getRandomValues === 'function') {
-      const b = new Uint8Array(16);
-      c.getRandomValues(b);
-      // RFC 4122 v4
-      b[6] = (b[6] & 0x0f) | 0x40;
-      b[8] = (b[8] & 0x3f) | 0x80;
-      const h = Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
-      return `k-${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
-    }
-  } catch {
-    /* fall through */
-  }
-  // Last resort — not cryptographically strong, but valid v4 format
-  const hex = (n: number) => Math.floor(Math.random() * n).toString(16);
-  return `k-${hex(0xffffffff)}-${hex(0xffff)}-4${hex(0xfff)}-${(8 + Math.floor(Math.random() * 4)).toString(16)}${hex(0xfff)}-${hex(0xffffffffffff)}`;
-}
-
 export default function IntakePage() {
   const [status, setStatus] = useState<string>('idle');
   const [response, setResponse] = useState<unknown>(null);
   const [error, setError] = useState<string>('');
+  const [intakeId, setIntakeId] = useState<string>('');
 
   async function submitSample() {
     setStatus('uploading');
@@ -77,13 +35,14 @@ export default function IntakePage() {
         headers: {
           'content-type': 'application/json',
           'idempotency-key': randomIdempotencyKey(),
-          'x-tenant-id': 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          'x-tenant-id': DEMO_TENANT_ID,
         },
         body: JSON.stringify(body),
       });
       const j = await r.json();
       setResponse(j);
       setStatus(r.ok ? 'submitted' : 'error');
+      if (r.ok && j.intake_id) setIntakeId(j.intake_id);
       if (!r.ok) setError(JSON.stringify(j));
     } catch (e) {
       setStatus('error');
@@ -119,6 +78,18 @@ export default function IntakePage() {
       <div className="mt-4 text-sm">
         Status: <span data-testid="intake-status" className="font-mono">{status}</span>
       </div>
+
+      {intakeId ? (
+        <div className="mt-2 text-sm">
+          <a
+            data-testid="link-to-repo-form"
+            href={`/intake/${intakeId}/repo`}
+            className="text-blue-700 underline hover:text-blue-900"
+          >
+            Link a repository to this intake (SCR-002) →
+          </a>
+        </div>
+      ) : null}
 
       {response ? (
         <pre
