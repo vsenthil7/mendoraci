@@ -3,6 +3,7 @@
  *
  * Anchors:
  *   - RT-001 CI Log Intake (API-001, API-002)
+ *   - RT-002 Repo Linking (API-003) — CP-4
  *   - RT-008 Mask Policy v1 pre-persist (BR-008, mandatory)
  *   - RT-013 Multi-Tenant Isolation (RLS via SET LOCAL app.tenant_id)
  *   - RT-015 Idempotency & Replay (Idempotency-Key header required on writes)
@@ -10,6 +11,7 @@
 import Fastify, { type FastifyInstance } from 'fastify';
 import sensible from '@fastify/sensible';
 import { intakeRoutes } from './routes/intake.js';
+import { repoLinkRoutes } from './routes/repo-link.js';
 import { healthRoutes } from './routes/health.js';
 import { dbPlugin } from './lib/db.js';
 import { tenantContextPlugin } from './middleware/tenant-context.js';
@@ -42,12 +44,10 @@ export async function buildApp(config: AppConfig = loadConfig()): Promise<Fastif
           ? { target: 'pino-pretty', options: { colorize: true } }
           : undefined,
     },
-    // 100 MB request size cap — defensive; per-route 50 MB enforced in handler.
     bodyLimit: 100 * 1024 * 1024,
     trustProxy: true,
   });
 
-  // Make config available everywhere.
   app.decorate('config', config);
 
   await app.register(sensible);
@@ -55,6 +55,7 @@ export async function buildApp(config: AppConfig = loadConfig()): Promise<Fastif
   await app.register(tenantContextPlugin);
   await app.register(healthRoutes);
   await app.register(intakeRoutes, { prefix: '/v1' });
+  await app.register(repoLinkRoutes, { prefix: '/v1' });
 
   app.setErrorHandler(errorHandler);
 
