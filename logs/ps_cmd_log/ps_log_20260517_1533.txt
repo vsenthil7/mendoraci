@@ -1,0 +1,1080 @@
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> date
+
+17 May 2026 15:32:46
+
+
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> cd C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci>
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> # 1. Commit + push CP-3c (Playwright pin + header leak fix)
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   docs/MendoraCI_Traceability_LIVE.md
+        modified:   logs/ps_cmd_log/ps_log_20260517_1514.txt
+        modified:   package.json
+        modified:   tests/playwright/playwright.config.ts
+        modified:   tests/playwright/scr-001-intake-negative.spec.ts
+
+no changes added to commit (use "git add" and/or "git commit -a")
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> git add -A
+warning: in the working copy of 'docs/MendoraCI_Traceability_LIVE.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'package.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/playwright/playwright.config.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/playwright/scr-001-intake-negative.spec.ts', LF will be replaced by CRLF the next time Git touches it
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> git status --short
+M  docs/MendoraCI_Traceability_LIVE.md
+M  logs/ps_cmd_log/ps_log_20260517_1514.txt
+M  package.json
+M  tests/playwright/playwright.config.ts
+M  tests/playwright/scr-001-intake-negative.spec.ts
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> git commit -m "fix(cp-3c): pin Playwright 1.48.0 + drop global tenant header default" `
+>>            -m "Bug 1 (18 failures): pnpm pulled @playwright/test 1.60.0 via ^1.48.0 but docker image is v1.48.0-jammy with old browser binaries -> 'Executable does not exist'. Pinned to exact 1.48.0." `
+>>            -m "Bug 2 (3 failures): playwright.config use.extraHTTPHeaders.x-tenant-id was inherited by request.newContext() in negative tests, so TEST-Pw-002b (missing tenant) was actually sending the tenant header and got 201. Dropped the global default; every negative-test context sets headers explicitly. TEST-Pw-002b uses a clean context with no tenant header." `
+>>            -m "Expected: 39/39 green after re-run."
+[main 647ce61] fix(cp-3c): pin Playwright 1.48.0 + drop global tenant header default
+ 5 files changed, 1506 insertions(+), 103 deletions(-)
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> git push
+Enumerating objects: 23, done.
+Counting objects: 100% (23/23), done.
+Delta compression using up to 12 threads
+Compressing objects: 100% (10/10), done.
+Writing objects: 100% (12/12), 12.59 KiB | 6.29 MiB/s, done.
+Total 12 (delta 7), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (7/7), completed with 7 local objects.
+To https://github.com/vsenthil7/mendoraci.git
+   c612be0..647ce61  main -> main
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci>
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> # 2. Re-run Playwright (clean install pulls pinned 1.48.0, test image rebuilds)
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> python scripts/cp3_run_e2e.py
+
+=== CP-3 E2E runner — Playwright in Docker against live stack ===
+
+=== Step 1: docker compose up -d ===
+$ docker compose up -d
+[+] up 7/7
+ ✔ Container mendoraci-redis        Healthy                                                                         1.6s
+ ✔ Container mendoraci-minio        Healthy                                                                         0.6s
+ ✔ Container mendoraci-postgres     Healthy                                                                         1.6s
+ ✔ Container mendoraci-api          Healthy                                                                         3.6s
+ ✔ Container mendoraci-web          Running                                                                         0.0s
+ ✔ Container mendoraci-api-migrate  Exited                                                                          2.5s
+ ✔ Container mendoraci-minio-init-1 Exited                                                                          1.2s
+
+=== Step 2: wait for api + web ready ===
+api healthy after 0s
+web responding after 0s
+
+=== Step 3: build playwright test image ===
+$ docker compose --profile test build test
+#1 [internal] load local bake definitions
+#1 reading from stdin 1.77kB done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from test.Dockerfile
+#2 transferring dockerfile: 1.08kB 0.0s done
+#2 DONE 0.0s
+
+#3 resolve image config for docker-image://docker.io/docker/dockerfile:1.7
+#3 ...
+
+#4 [auth] docker/dockerfile:pull token for registry-1.docker.io
+#4 DONE 0.0s
+
+#3 resolve image config for docker-image://docker.io/docker/dockerfile:1.7
+#3 DONE 1.7s
+
+#5 docker-image://docker.io/docker/dockerfile:1.7@sha256:a57df69d0ea827fb7266491f2813635de6f17269be881f696fbfdf2d83dda33e
+#5 resolve docker.io/docker/dockerfile:1.7@sha256:a57df69d0ea827fb7266491f2813635de6f17269be881f696fbfdf2d83dda33e 0.0s done
+#5 CACHED
+
+#6 [internal] load metadata for mcr.microsoft.com/playwright:v1.48.0-jammy
+#6 DONE 0.5s
+
+#7 [internal] load .dockerignore
+#7 transferring context: 270B done
+#7 DONE 0.0s
+
+#8 [internal] load build context
+#8 DONE 0.0s
+
+#9 [ 1/14] FROM mcr.microsoft.com/playwright:v1.48.0-jammy@sha256:7dbbf924428aad5c87a5a3a5bc38f23e110cb1f5427fbbc7dbc3231014a4b0db
+#9 resolve mcr.microsoft.com/playwright:v1.48.0-jammy@sha256:7dbbf924428aad5c87a5a3a5bc38f23e110cb1f5427fbbc7dbc3231014a4b0db 0.0s done
+#9 DONE 0.0s
+
+#8 [internal] load build context
+#8 transferring context: 10.67kB 0.1s done
+#8 DONE 0.1s
+
+#10 [ 2/14] WORKDIR /app
+#10 CACHED
+
+#11 [ 3/14] RUN corepack enable && corepack prepare pnpm@9.12.0 --activate
+#11 CACHED
+
+#12 [ 4/14] COPY package.json pnpm-workspace.yaml ./
+#12 DONE 0.1s
+
+#13 [ 5/14] COPY apps/api/package.json apps/api/
+#13 DONE 0.1s
+
+#14 [ 6/14] COPY apps/web/package.json apps/web/
+#14 DONE 0.1s
+
+#15 [ 7/14] COPY packages/shared/package.json packages/shared/
+#15 DONE 0.1s
+
+#16 [ 8/14] COPY packages/mask-policy/package.json packages/mask-policy/
+#16 DONE 0.1s
+
+#17 [ 9/14] RUN pnpm install --no-frozen-lockfile
+#17 1.653 Scope: all 5 workspace projects
+#17 2.014 Progress: resolved 1, reused 0, downloaded 0, added 0
+#17 2.031 apps/api                                 |  WARN  deprecated uuid@10.0.0
+#17 2.822
+#17 2.822    ╭──────────────────────────────────────────────────────────────────╮
+#17 2.822    │                                                                  │
+#17 2.822    │                Update available! 9.12.0 → 11.1.2.                │
+#17 2.822    │   Changelog: https://github.com/pnpm/pnpm/releases/tag/v11.1.2   │
+#17 2.822    │         Run "corepack install -g pnpm@11.1.2" to update.         │
+#17 2.822    │                                                                  │
+#17 2.822    │         Follow @pnpmjs for updates: https://x.com/pnpmjs         │
+#17 2.822    │                                                                  │
+#17 2.822    ╰──────────────────────────────────────────────────────────────────╯
+#17 2.822
+#17 3.083 Progress: resolved 18, reused 0, downloaded 12, added 0
+#17 4.085 Progress: resolved 23, reused 0, downloaded 21, added 0
+#17 5.219 Progress: resolved 24, reused 0, downloaded 22, added 0
+#17 6.219 Progress: resolved 62, reused 0, downloaded 55, added 0
+#17 7.219 Progress: resolved 109, reused 0, downloaded 93, added 0
+#17 8.237 Progress: resolved 135, reused 0, downloaded 121, added 0
+#17 9.338 Progress: resolved 165, reused 0, downloaded 146, added 0
+#17 10.37 Progress: resolved 186, reused 0, downloaded 153, added 0
+#17 11.52 Progress: resolved 232, reused 0, downloaded 175, added 0
+#17 12.67 Progress: resolved 245, reused 0, downloaded 179, added 0
+#17 13.67 Progress: resolved 273, reused 0, downloaded 215, added 0
+#17 15.30 Progress: resolved 328, reused 0, downloaded 247, added 0
+#17 16.30 Progress: resolved 402, reused 0, downloaded 303, added 0
+#17 16.52  WARN  2 deprecated subdependencies found: glob@10.5.0, glob@11.0.3
+#17 16.61 Packages: +324
+#17 16.61 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#17 18.76 Progress: resolved 403, reused 0, downloaded 310, added 0
+#17 19.76 Progress: resolved 403, reused 0, downloaded 321, added 0
+#17 20.76 Progress: resolved 403, reused 0, downloaded 322, added 261
+#17 21.88 Progress: resolved 403, reused 0, downloaded 322, added 322
+#17 24.77 Progress: resolved 403, reused 0, downloaded 323, added 322
+#17 25.78 Progress: resolved 403, reused 0, downloaded 323, added 323
+#17 26.33 Progress: resolved 403, reused 0, downloaded 324, added 324, done
+#17 26.49 .../esbuild@0.28.0/node_modules/esbuild postinstall$ node install.js
+#17 26.49 .../esbuild@0.21.5/node_modules/esbuild postinstall$ node install.js
+#17 26.70 .../esbuild@0.28.0/node_modules/esbuild postinstall: Done
+#17 26.70 .../esbuild@0.21.5/node_modules/esbuild postinstall: Done
+#17 28.31
+#17 28.31 devDependencies:
+#17 28.31 + @playwright/test 1.48.0 (1.60.0 is available)
+#17 28.31 + typescript 5.9.3 (6.0.3 is available)
+#17 28.31
+#17 28.32 Done in 27.1s
+#17 DONE 28.6s
+
+#18 [10/14] COPY tsconfig.base.json ./
+#18 DONE 0.3s
+
+#19 [11/14] COPY tests ./tests
+#19 DONE 0.1s
+
+#20 [12/14] COPY packages ./packages
+#20 DONE 0.1s
+
+#21 [13/14] COPY apps ./apps
+#21 DONE 0.1s
+
+#22 [14/14] RUN pnpm --filter @mendoraci/shared build  && pnpm --filter @mendoraci/mask-policy build
+#22 1.014
+#22 1.014 > @mendoraci/shared@0.1.0 build /app/packages/shared
+#22 1.014 > tsc -p tsconfig.json
+#22 1.014
+#22 2.183
+#22 2.183 > @mendoraci/mask-policy@1.0.0 build /app/packages/mask-policy
+#22 2.183 > tsc -p tsconfig.json
+#22 2.183
+#22 DONE 3.1s
+
+#23 exporting to image
+#23 exporting layers
+#23 exporting layers 19.0s done
+#23 exporting manifest sha256:1fd2dc4295fb6c50097b2bdb7dc5d2504b9c10f58c664a12c52e9d2d90943fad 0.0s done
+#23 exporting config sha256:f917106ae315d793592795f6c65de7de7d5f9bd23d534f04b13f4c46fd526c74 0.0s done
+#23 exporting attestation manifest sha256:7962c0f5b5d3cc17fb870a1d788f52b57f57a6d4c91e8bb518a77de66634c108 0.0s done
+#23 exporting manifest list sha256:90f86565844a2aa84b3a6d25f23da6492a183c01e36104e82bbfd7dfef07fd87
+#23 exporting manifest list sha256:90f86565844a2aa84b3a6d25f23da6492a183c01e36104e82bbfd7dfef07fd87 0.0s done
+#23 naming to docker.io/library/mendoraci-test:latest done
+#23 unpacking to docker.io/library/mendoraci-test:latest
+#23 unpacking to docker.io/library/mendoraci-test:latest 14.3s done
+#23 DONE 33.5s
+
+#24 resolving provenance for metadata file
+#24 DONE 0.1s
+[+] build 1/3
+ - Image mendoraci-api-migrate Building                                                                            70.5s
+ - Image mendoraci-api         Building                                                                            70.5s
+ ✔ Image mendoraci-test        Built                                                                               70.4s
+
+=== Step 4: run playwright (chromium + firefox + webkit) ===
+$ docker compose --profile test run --rm -T test pnpm exec playwright test --config=tests/playwright/playwright.config.ts --reporter=list,html
+[+]  6/6t 6/64
+ ✔ Container mendoraci-minio        Healthy                                                                         0.6s
+ ✔ Container mendoraci-redis        Healthy                                                                         1.6s
+ ✔ Container mendoraci-postgres     Healthy                                                                         1.6s
+ ✔ Container mendoraci-api          Running                                                                         0.0s
+ ✔ Container mendoraci-api-migrate  Exited                                                                          2.6s
+ ✔ Container mendoraci-minio-init-1 Exited                                                                          1.5s
+Container mendoraci-postgres Waiting
+Container mendoraci-redis Waiting
+Container mendoraci-api Waiting
+Container mendoraci-redis Healthy
+Container mendoraci-api Healthy
+Container mendoraci-postgres Healthy
+Container mendoraci-test-run-c53a73de4107 Creating
+Container mendoraci-test-run-c53a73de4107 Created
+
+Running 39 tests using 1 worker
+
+  ✘  1 [chromium] › scr-001-intake-error-surfacing.spec.ts:12:7 › SCR-001 — Intake page (error surfacing) › TEST-Pw-003a: surfaces 500 from API into the UI (6.6s)
+  ✘  2 [chromium] › scr-001-intake-error-surfacing.spec.ts:12:7 › SCR-001 — Intake page (error surfacing) › TEST-Pw-003a: surfaces 500 from API into the UI (retry #1) (1.4s)
+  ✘  3 [chromium] › scr-001-intake-error-surfacing.spec.ts:27:7 › SCR-001 — Intake page (error surfacing) › TEST-Pw-003b: surfaces 422 validation_failed from API into the UI (1.1s)
+  ✘  4 [chromium] › scr-001-intake-error-surfacing.spec.ts:27:7 › SCR-001 — Intake page (error surfacing) › TEST-Pw-003b: surfaces 422 validation_failed from API into the UI (retry #1) (1.2s)
+  ✓  5 [chromium] › scr-001-intake-error-surfacing.spec.ts:48:7 › SCR-001 — Intake page (error surfacing) › TEST-Pw-003c: surfaces network failure (api down) into the UI (2.2s)
+  ✓  6 [chromium] › scr-001-intake-happy.spec.ts:14:7 › SCR-001 — Intake page (happy) › renders all primary controls (853ms)
+  ✘  7 [chromium] › scr-001-intake-happy.spec.ts:22:7 › SCR-001 — Intake page (happy) › TEST-Pw-001: submit sample intake -> 201 masked + mask_policy_version v1.0.0 (16.7s)
+  ✘  8 [chromium] › scr-001-intake-happy.spec.ts:22:7 › SCR-001 — Intake page (happy) › TEST-Pw-001: submit sample intake -> 201 masked + mask_policy_version v1.0.0 (retry #1) (17.0s)
+  ✘  9 [chromium] › scr-001-intake-happy.spec.ts:46:7 › SCR-001 — Intake page (happy) › TEST-Pw-001b: AWS access key in sample body is masked in the rendered response (16.5s)
+  ✘  10 [chromium] › scr-001-intake-happy.spec.ts:46:7 › SCR-001 — Intake page (happy) › TEST-Pw-001b: AWS access key in sample body is masked in the rendered response (retry #1) (16.4s)
+  ✓  11 [chromium] › scr-001-intake-negative.spec.ts:14:7 › SCR-001 — Intake API contract (negative, via deployed stack) › TEST-Pw-002a: malformed body returns 422 validation_failed with validation_errors[] (150ms)
+  ✓  12 [chromium] › scr-001-intake-negative.spec.ts:34:7 › SCR-001 — Intake API contract (negative, via deployed stack) › TEST-Pw-002b: missing X-Tenant-Id returns 401 unauthorized (45ms)
+  ✓  13 [chromium] › scr-001-intake-negative.spec.ts:49:7 › SCR-001 — Intake API contract (negative, via deployed stack) › TEST-Pw-002c: non-UUID X-Tenant-Id returns 401 (32ms)
+  ✓  14 [chromium] › scr-001-intake-negative.spec.ts:65:7 › SCR-001 — Intake API contract (negative, via deployed stack) › TEST-Pw-002d: missing Idempotency-Key returns 400 idempotency_key_required (29ms)
+  ✓  15 [chromium] › scr-001-intake-negative.spec.ts:79:7 › SCR-001 — Intake API contract (negative, via deployed stack) › TEST-Pw-002e: oversized artifact (>50MB) returns 413 artifact_exceeds_50mb (12.9s)
+  ✓  16 [chromium] › scr-001-intake-negative.spec.ts:97:7 › SCR-001 — Intake API contract (negative, via deployed stack) › TEST-Pw-002f: GET /v1/intake/<bad-uuid> returns 400 invalid_intake_id (33ms)
+  ✓  17 [chromium] › scr-001-intake-negative.spec.ts:108:7 › SCR-001 — Intake API contract (negative, via deployed stack) › TEST-Pw-002g: GET /v1/intake/<unknown-uuid> returns 404 intake_not_found (49ms)
+  ✘  18 [firefox] › scr-001-intake-error-surfacing.spec.ts:12:7 › SCR-001 — Intake page (error surfacing) › TEST-Pw-003a: surfaces 500 from API into the UI (4.0s)
+  ✘  19 [firefox] › scr-001-intake-error-surfacing.spec.ts:12:7 › SCR-001 — Intake page (error surfacing) › TEST-Pw-003a: surfaces 500 from API into the UI (retry #1) (2.4s)
+  ✘  20 [firefox] › scr-001-intake-error-surfacing.spec.ts:27:7 › SCR-001 — Intake page (error surfacing) › TEST-Pw-003b: surfaces 422 validation_failed from API into the UI (2.4s)
+  ✘  21 [firefox] › scr-001-intake-error-surfacing.spec.ts:27:7 › SCR-001 — Intake page (error surfacing) › TEST-Pw-003b: surfaces 422 validation_failed from API into the UI (retry #1) (2.1s)
+  ✓  22 [firefox] › scr-001-intake-error-surfacing.spec.ts:48:7 › SCR-001 — Intake page (error surfacing) › TEST-Pw-003c: surfaces network failure (api down) into the UI (2.2s)
+  ✓  23 [firefox] › scr-001-intake-happy.spec.ts:14:7 › SCR-001 — Intake page (happy) › renders all primary controls (3.1s)
+  ✘  24 [firefox] › scr-001-intake-happy.spec.ts:22:7 › SCR-001 — Intake page (happy) › TEST-Pw-001: submit sample intake -> 201 masked + mask_policy_version v1.0.0 (16.8s)
+  ✘  25 [firefox] › scr-001-intake-happy.spec.ts:22:7 › SCR-001 — Intake page (happy) › TEST-Pw-001: submit sample intake -> 201 masked + mask_policy_version v1.0.0 (retry #1) (17.5s)
+  ✘  26 [firefox] › scr-001-intake-happy.spec.ts:46:7 › SCR-001 — Intake page (happy) › TEST-Pw-001b: AWS access key in sample body is masked in the rendered response (18.6s)
+  ✘  27 [firefox] › scr-001-intake-happy.spec.ts:46:7 › SCR-001 — Intake page (happy) › TEST-Pw-001b: AWS access key in sample body is masked in the rendered response (retry #1) (17.4s)
+  ✓  28 [firefox] › scr-001-intake-negative.spec.ts:14:7 › SCR-001 — Intake API contract (negative, via deployed stack) › TEST-Pw-002a: malformed body returns 422 validation_failed with validation_errors[] (56ms)
+  ✓  29 [firefox] › scr-001-intake-negative.spec.ts:34:7 › SCR-001 — Intake API contract (negative, via deployed stack) › TEST-Pw-002b: missing X-Tenant-Id returns 401 unauthorized (34ms)
+  ✓  30 [firefox] › scr-001-intake-negative.spec.ts:49:7 › SCR-001 — Intake API contract (negative, via deployed stack) › TEST-Pw-002c: non-UUID X-Tenant-Id returns 401 (14ms)
+  ✓  31 [firefox] › scr-001-intake-negative.spec.ts:65:7 › SCR-001 — Intake API contract (negative, via deployed stack) › TEST-Pw-002d: missing Idempotency-Key returns 400 idempotency_key_required (20ms)
+  ✓  32 [firefox] › scr-001-intake-negative.spec.ts:79:7 › SCR-001 — Intake API contract (negative, via deployed stack) › TEST-Pw-002e: oversized artifact (>50MB) returns 413 artifact_exceeds_50mb (1.7s)
+  ✓  33 [firefox] › scr-001-intake-negative.spec.ts:97:7 › SCR-001 — Intake API contract (negative, via deployed stack) › TEST-Pw-002f: GET /v1/intake/<bad-uuid> returns 400 invalid_intake_id (13ms)
+  ✓  34 [firefox] › scr-001-intake-negative.spec.ts:108:7 › SCR-001 — Intake API contract (negative, via deployed stack) › TEST-Pw-002g: GET /v1/intake/<unknown-uuid> returns 404 intake_not_found (23ms)
+  ✘  35 [webkit] › scr-001-intake-error-surfacing.spec.ts:12:7 › SCR-001 — Intake page (error surfacing) › TEST-Pw-003a: surfaces 500 from API into the UI (1.8s)
+  ✘  36 [webkit] › scr-001-intake-error-surfacing.spec.ts:12:7 › SCR-001 — Intake page (error surfacing) › TEST-Pw-003a: surfaces 500 from API into the UI (retry #1) (1.2s)
+  ✘  37 [webkit] › scr-001-intake-error-surfacing.spec.ts:27:7 › SCR-001 — Intake page (error surfacing) › TEST-Pw-003b: surfaces 422 validation_failed from API into the UI (1.1s)
+  ✘  38 [webkit] › scr-001-intake-error-surfacing.spec.ts:27:7 › SCR-001 — Intake page (error surfacing) › TEST-Pw-003b: surfaces 422 validation_failed from API into the UI (retry #1) (1.0s)
+  ✓  39 [webkit] › scr-001-intake-error-surfacing.spec.ts:48:7 › SCR-001 — Intake page (error surfacing) › TEST-Pw-003c: surfaces network failure (api down) into the UI (1.3s)
+  ✓  40 [webkit] › scr-001-intake-happy.spec.ts:14:7 › SCR-001 — Intake page (happy) › renders all primary controls (1.2s)
+  ✘  41 [webkit] › scr-001-intake-happy.spec.ts:22:7 › SCR-001 — Intake page (happy) › TEST-Pw-001: submit sample intake -> 201 masked + mask_policy_version v1.0.0 (16.7s)
+  ✘  42 [webkit] › scr-001-intake-happy.spec.ts:22:7 › SCR-001 — Intake page (happy) › TEST-Pw-001: submit sample intake -> 201 masked + mask_policy_version v1.0.0 (retry #1) (16.5s)
+  ✘  43 [webkit] › scr-001-intake-happy.spec.ts:46:7 › SCR-001 — Intake page (happy) › TEST-Pw-001b: AWS access key in sample body is masked in the rendered response (17.4s)
+  ✘  44 [webkit] › scr-001-intake-happy.spec.ts:46:7 › SCR-001 — Intake page (happy) › TEST-Pw-001b: AWS access key in sample body is masked in the rendered response (retry #1) (17.2s)
+  ✓  45 [webkit] › scr-001-intake-negative.spec.ts:14:7 › SCR-001 — Intake API contract (negative, via deployed stack) › TEST-Pw-002a: malformed body returns 422 validation_failed with validation_errors[] (76ms)
+  ✓  46 [webkit] › scr-001-intake-negative.spec.ts:34:7 › SCR-001 — Intake API contract (negative, via deployed stack) › TEST-Pw-002b: missing X-Tenant-Id returns 401 unauthorized (58ms)
+  ✓  47 [webkit] › scr-001-intake-negative.spec.ts:49:7 › SCR-001 — Intake API contract (negative, via deployed stack) › TEST-Pw-002c: non-UUID X-Tenant-Id returns 401 (41ms)
+  ✓  48 [webkit] › scr-001-intake-negative.spec.ts:65:7 › SCR-001 — Intake API contract (negative, via deployed stack) › TEST-Pw-002d: missing Idempotency-Key returns 400 idempotency_key_required (39ms)
+  ✓  49 [webkit] › scr-001-intake-negative.spec.ts:79:7 › SCR-001 — Intake API contract (negative, via deployed stack) › TEST-Pw-002e: oversized artifact (>50MB) returns 413 artifact_exceeds_50mb (6.5s)
+  ✓  50 [webkit] › scr-001-intake-negative.spec.ts:97:7 › SCR-001 — Intake API contract (negative, via deployed stack) › TEST-Pw-002f: GET /v1/intake/<bad-uuid> returns 400 invalid_intake_id (23ms)
+  ✓  51 [webkit] › scr-001-intake-negative.spec.ts:108:7 › SCR-001 — Intake API contract (negative, via deployed stack) › TEST-Pw-002g: GET /v1/intake/<unknown-uuid> returns 404 intake_not_found (42ms)
+
+
+  1) [chromium] › scr-001-intake-error-surfacing.spec.ts:12:7 › SCR-001 — Intake page (error surfacing) › TEST-Pw-003a: surfaces 500 from API into the UI
+
+    Error: expect(received).toContain(expected) // indexOf
+
+    Expected substring: "internal_error"
+    Received string:    "TypeError: crypto.randomUUID is not a function"
+
+      22 |     await expect(page.getByTestId('intake-status')).toHaveText('error');
+      23 |     const errText = await page.getByTestId('intake-error').textContent();
+    > 24 |     expect(errText ?? '').toContain('internal_error');
+         |                           ^
+      25 |   });
+      26 |
+      27 |   test('TEST-Pw-003b: surfaces 422 validation_failed from API into the UI', async ({ page }) => {
+
+        at /app/tests/playwright/scr-001-intake-error-surfacing.spec.ts:24:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/scr-001-intake-error-surfa-f09ce-es-500-from-API-into-the-UI-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/scr-001-intake-error-surfa-f09ce-es-500-from-API-into-the-UI-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/scr-001-intake-error-surfa-f09ce-es-500-from-API-into-the-UI-chromium/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/scr-001-intake-error-surfa-f09ce-es-500-from-API-into-the-UI-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toContain(expected) // indexOf
+
+    Expected substring: "internal_error"
+    Received string:    "TypeError: crypto.randomUUID is not a function"
+
+      22 |     await expect(page.getByTestId('intake-status')).toHaveText('error');
+      23 |     const errText = await page.getByTestId('intake-error').textContent();
+    > 24 |     expect(errText ?? '').toContain('internal_error');
+         |                           ^
+      25 |   });
+      26 |
+      27 |   test('TEST-Pw-003b: surfaces 422 validation_failed from API into the UI', async ({ page }) => {
+
+        at /app/tests/playwright/scr-001-intake-error-surfacing.spec.ts:24:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/scr-001-intake-error-surfa-f09ce-es-500-from-API-into-the-UI-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/scr-001-intake-error-surfa-f09ce-es-500-from-API-into-the-UI-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/scr-001-intake-error-surfa-f09ce-es-500-from-API-into-the-UI-chromium-retry1/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/scr-001-intake-error-surfa-f09ce-es-500-from-API-into-the-UI-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [chromium] › scr-001-intake-error-surfacing.spec.ts:27:7 › SCR-001 — Intake page (error surfacing) › TEST-Pw-003b: surfaces 422 validation_failed from API into the UI
+
+    Error: expect(received).toContain(expected) // indexOf
+
+    Expected substring: "validation_failed"
+    Received string:    "TypeError: crypto.randomUUID is not a function"
+
+      43 |     await expect(page.getByTestId('intake-status')).toHaveText('error');
+      44 |     const errText = await page.getByTestId('intake-error').textContent();
+    > 45 |     expect(errText ?? '').toContain('validation_failed');
+         |                           ^
+      46 |   });
+      47 |
+      48 |   test('TEST-Pw-003c: surfaces network failure (api down) into the UI', async ({ page }) => {
+
+        at /app/tests/playwright/scr-001-intake-error-surfacing.spec.ts:45:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/scr-001-intake-error-surfa-3470a-failed-from-API-into-the-UI-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/scr-001-intake-error-surfa-3470a-failed-from-API-into-the-UI-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/scr-001-intake-error-surfa-3470a-failed-from-API-into-the-UI-chromium/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/scr-001-intake-error-surfa-3470a-failed-from-API-into-the-UI-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toContain(expected) // indexOf
+
+    Expected substring: "validation_failed"
+    Received string:    "TypeError: crypto.randomUUID is not a function"
+
+      43 |     await expect(page.getByTestId('intake-status')).toHaveText('error');
+      44 |     const errText = await page.getByTestId('intake-error').textContent();
+    > 45 |     expect(errText ?? '').toContain('validation_failed');
+         |                           ^
+      46 |   });
+      47 |
+      48 |   test('TEST-Pw-003c: surfaces network failure (api down) into the UI', async ({ page }) => {
+
+        at /app/tests/playwright/scr-001-intake-error-surfacing.spec.ts:45:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/scr-001-intake-error-surfa-3470a-failed-from-API-into-the-UI-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/scr-001-intake-error-surfa-3470a-failed-from-API-into-the-UI-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/scr-001-intake-error-surfa-3470a-failed-from-API-into-the-UI-chromium-retry1/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/scr-001-intake-error-surfa-3470a-failed-from-API-into-the-UI-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [chromium] › scr-001-intake-happy.spec.ts:22:7 › SCR-001 — Intake page (happy) › TEST-Pw-001: submit sample intake -> 201 masked + mask_policy_version v1.0.0
+
+    TimeoutError: page.waitForResponse: Timeout 15000ms exceeded while waiting for event "response"
+
+      24 |
+      25 |     // Capture the network response so we can assert on JSON
+    > 26 |     const responsePromise = page.waitForResponse(
+         |                                  ^
+      27 |       (r) => r.url().includes('/api/v1/intake') && r.request().method() === 'POST',
+      28 |     );
+      29 |
+
+        at /app/tests/playwright/scr-001-intake-happy.spec.ts:26:34
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/scr-001-intake-happy-SCR-0-9f1e8--mask-policy-version-v1-0-0-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/scr-001-intake-happy-SCR-0-9f1e8--mask-policy-version-v1-0-0-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/scr-001-intake-happy-SCR-0-9f1e8--mask-policy-version-v1-0-0-chromium/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/scr-001-intake-happy-SCR-0-9f1e8--mask-policy-version-v1-0-0-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    TimeoutError: page.waitForResponse: Timeout 15000ms exceeded while waiting for event "response"
+
+      24 |
+      25 |     // Capture the network response so we can assert on JSON
+    > 26 |     const responsePromise = page.waitForResponse(
+         |                                  ^
+      27 |       (r) => r.url().includes('/api/v1/intake') && r.request().method() === 'POST',
+      28 |     );
+      29 |
+
+        at /app/tests/playwright/scr-001-intake-happy.spec.ts:26:34
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/scr-001-intake-happy-SCR-0-9f1e8--mask-policy-version-v1-0-0-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/scr-001-intake-happy-SCR-0-9f1e8--mask-policy-version-v1-0-0-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/scr-001-intake-happy-SCR-0-9f1e8--mask-policy-version-v1-0-0-chromium-retry1/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/scr-001-intake-happy-SCR-0-9f1e8--mask-policy-version-v1-0-0-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) [chromium] › scr-001-intake-happy.spec.ts:46:7 › SCR-001 — Intake page (happy) › TEST-Pw-001b: AWS access key in sample body is masked in the rendered response
+
+    TimeoutError: page.waitForResponse: Timeout 15000ms exceeded while waiting for event "response"
+
+      46 |   test('TEST-Pw-001b: AWS access key in sample body is masked in the rendered response', async ({ page }) => {
+      47 |     await page.goto('/');
+    > 48 |     const responsePromise = page.waitForResponse(
+         |                                  ^
+      49 |       (r) => r.url().includes('/api/v1/intake') && r.request().method() === 'POST',
+      50 |     );
+      51 |     await page.getByTestId('submit-sample').click();
+
+        at /app/tests/playwright/scr-001-intake-happy.spec.ts:48:34
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/scr-001-intake-happy-SCR-0-9261c-ed-in-the-rendered-response-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/scr-001-intake-happy-SCR-0-9261c-ed-in-the-rendered-response-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/scr-001-intake-happy-SCR-0-9261c-ed-in-the-rendered-response-chromium/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/scr-001-intake-happy-SCR-0-9261c-ed-in-the-rendered-response-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    TimeoutError: page.waitForResponse: Timeout 15000ms exceeded while waiting for event "response"
+
+      46 |   test('TEST-Pw-001b: AWS access key in sample body is masked in the rendered response', async ({ page }) => {
+      47 |     await page.goto('/');
+    > 48 |     const responsePromise = page.waitForResponse(
+         |                                  ^
+      49 |       (r) => r.url().includes('/api/v1/intake') && r.request().method() === 'POST',
+      50 |     );
+      51 |     await page.getByTestId('submit-sample').click();
+
+        at /app/tests/playwright/scr-001-intake-happy.spec.ts:48:34
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/scr-001-intake-happy-SCR-0-9261c-ed-in-the-rendered-response-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/scr-001-intake-happy-SCR-0-9261c-ed-in-the-rendered-response-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/scr-001-intake-happy-SCR-0-9261c-ed-in-the-rendered-response-chromium-retry1/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/scr-001-intake-happy-SCR-0-9261c-ed-in-the-rendered-response-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  5) [firefox] › scr-001-intake-error-surfacing.spec.ts:12:7 › SCR-001 — Intake page (error surfacing) › TEST-Pw-003a: surfaces 500 from API into the UI
+
+    Error: expect(received).toContain(expected) // indexOf
+
+    Expected substring: "internal_error"
+    Received string:    "TypeError: crypto.randomUUID is not a function"
+
+      22 |     await expect(page.getByTestId('intake-status')).toHaveText('error');
+      23 |     const errText = await page.getByTestId('intake-error').textContent();
+    > 24 |     expect(errText ?? '').toContain('internal_error');
+         |                           ^
+      25 |   });
+      26 |
+      27 |   test('TEST-Pw-003b: surfaces 422 validation_failed from API into the UI', async ({ page }) => {
+
+        at /app/tests/playwright/scr-001-intake-error-surfacing.spec.ts:24:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/scr-001-intake-error-surfa-f09ce-es-500-from-API-into-the-UI-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/scr-001-intake-error-surfa-f09ce-es-500-from-API-into-the-UI-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/scr-001-intake-error-surfa-f09ce-es-500-from-API-into-the-UI-firefox/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/scr-001-intake-error-surfa-f09ce-es-500-from-API-into-the-UI-firefox/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toContain(expected) // indexOf
+
+    Expected substring: "internal_error"
+    Received string:    "TypeError: crypto.randomUUID is not a function"
+
+      22 |     await expect(page.getByTestId('intake-status')).toHaveText('error');
+      23 |     const errText = await page.getByTestId('intake-error').textContent();
+    > 24 |     expect(errText ?? '').toContain('internal_error');
+         |                           ^
+      25 |   });
+      26 |
+      27 |   test('TEST-Pw-003b: surfaces 422 validation_failed from API into the UI', async ({ page }) => {
+
+        at /app/tests/playwright/scr-001-intake-error-surfacing.spec.ts:24:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/scr-001-intake-error-surfa-f09ce-es-500-from-API-into-the-UI-firefox-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/scr-001-intake-error-surfa-f09ce-es-500-from-API-into-the-UI-firefox-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/scr-001-intake-error-surfa-f09ce-es-500-from-API-into-the-UI-firefox-retry1/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/scr-001-intake-error-surfa-f09ce-es-500-from-API-into-the-UI-firefox-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  6) [firefox] › scr-001-intake-error-surfacing.spec.ts:27:7 › SCR-001 — Intake page (error surfacing) › TEST-Pw-003b: surfaces 422 validation_failed from API into the UI
+
+    Error: expect(received).toContain(expected) // indexOf
+
+    Expected substring: "validation_failed"
+    Received string:    "TypeError: crypto.randomUUID is not a function"
+
+      43 |     await expect(page.getByTestId('intake-status')).toHaveText('error');
+      44 |     const errText = await page.getByTestId('intake-error').textContent();
+    > 45 |     expect(errText ?? '').toContain('validation_failed');
+         |                           ^
+      46 |   });
+      47 |
+      48 |   test('TEST-Pw-003c: surfaces network failure (api down) into the UI', async ({ page }) => {
+
+        at /app/tests/playwright/scr-001-intake-error-surfacing.spec.ts:45:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/scr-001-intake-error-surfa-3470a-failed-from-API-into-the-UI-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/scr-001-intake-error-surfa-3470a-failed-from-API-into-the-UI-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/scr-001-intake-error-surfa-3470a-failed-from-API-into-the-UI-firefox/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/scr-001-intake-error-surfa-3470a-failed-from-API-into-the-UI-firefox/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toContain(expected) // indexOf
+
+    Expected substring: "validation_failed"
+    Received string:    "TypeError: crypto.randomUUID is not a function"
+
+      43 |     await expect(page.getByTestId('intake-status')).toHaveText('error');
+      44 |     const errText = await page.getByTestId('intake-error').textContent();
+    > 45 |     expect(errText ?? '').toContain('validation_failed');
+         |                           ^
+      46 |   });
+      47 |
+      48 |   test('TEST-Pw-003c: surfaces network failure (api down) into the UI', async ({ page }) => {
+
+        at /app/tests/playwright/scr-001-intake-error-surfacing.spec.ts:45:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/scr-001-intake-error-surfa-3470a-failed-from-API-into-the-UI-firefox-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/scr-001-intake-error-surfa-3470a-failed-from-API-into-the-UI-firefox-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/scr-001-intake-error-surfa-3470a-failed-from-API-into-the-UI-firefox-retry1/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/scr-001-intake-error-surfa-3470a-failed-from-API-into-the-UI-firefox-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  7) [firefox] › scr-001-intake-happy.spec.ts:22:7 › SCR-001 — Intake page (happy) › TEST-Pw-001: submit sample intake -> 201 masked + mask_policy_version v1.0.0
+
+    TimeoutError: page.waitForResponse: Timeout 15000ms exceeded while waiting for event "response"
+
+      24 |
+      25 |     // Capture the network response so we can assert on JSON
+    > 26 |     const responsePromise = page.waitForResponse(
+         |                                  ^
+      27 |       (r) => r.url().includes('/api/v1/intake') && r.request().method() === 'POST',
+      28 |     );
+      29 |
+
+        at /app/tests/playwright/scr-001-intake-happy.spec.ts:26:34
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/scr-001-intake-happy-SCR-0-9f1e8--mask-policy-version-v1-0-0-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/scr-001-intake-happy-SCR-0-9f1e8--mask-policy-version-v1-0-0-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/scr-001-intake-happy-SCR-0-9f1e8--mask-policy-version-v1-0-0-firefox/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/scr-001-intake-happy-SCR-0-9f1e8--mask-policy-version-v1-0-0-firefox/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    TimeoutError: page.waitForResponse: Timeout 15000ms exceeded while waiting for event "response"
+
+      24 |
+      25 |     // Capture the network response so we can assert on JSON
+    > 26 |     const responsePromise = page.waitForResponse(
+         |                                  ^
+      27 |       (r) => r.url().includes('/api/v1/intake') && r.request().method() === 'POST',
+      28 |     );
+      29 |
+
+        at /app/tests/playwright/scr-001-intake-happy.spec.ts:26:34
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/scr-001-intake-happy-SCR-0-9f1e8--mask-policy-version-v1-0-0-firefox-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/scr-001-intake-happy-SCR-0-9f1e8--mask-policy-version-v1-0-0-firefox-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/scr-001-intake-happy-SCR-0-9f1e8--mask-policy-version-v1-0-0-firefox-retry1/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/scr-001-intake-happy-SCR-0-9f1e8--mask-policy-version-v1-0-0-firefox-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  8) [firefox] › scr-001-intake-happy.spec.ts:46:7 › SCR-001 — Intake page (happy) › TEST-Pw-001b: AWS access key in sample body is masked in the rendered response
+
+    TimeoutError: page.waitForResponse: Timeout 15000ms exceeded while waiting for event "response"
+
+      46 |   test('TEST-Pw-001b: AWS access key in sample body is masked in the rendered response', async ({ page }) => {
+      47 |     await page.goto('/');
+    > 48 |     const responsePromise = page.waitForResponse(
+         |                                  ^
+      49 |       (r) => r.url().includes('/api/v1/intake') && r.request().method() === 'POST',
+      50 |     );
+      51 |     await page.getByTestId('submit-sample').click();
+
+        at /app/tests/playwright/scr-001-intake-happy.spec.ts:48:34
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/scr-001-intake-happy-SCR-0-9261c-ed-in-the-rendered-response-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/scr-001-intake-happy-SCR-0-9261c-ed-in-the-rendered-response-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/scr-001-intake-happy-SCR-0-9261c-ed-in-the-rendered-response-firefox/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/scr-001-intake-happy-SCR-0-9261c-ed-in-the-rendered-response-firefox/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    TimeoutError: page.waitForResponse: Timeout 15000ms exceeded while waiting for event "response"
+
+      46 |   test('TEST-Pw-001b: AWS access key in sample body is masked in the rendered response', async ({ page }) => {
+      47 |     await page.goto('/');
+    > 48 |     const responsePromise = page.waitForResponse(
+         |                                  ^
+      49 |       (r) => r.url().includes('/api/v1/intake') && r.request().method() === 'POST',
+      50 |     );
+      51 |     await page.getByTestId('submit-sample').click();
+
+        at /app/tests/playwright/scr-001-intake-happy.spec.ts:48:34
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/scr-001-intake-happy-SCR-0-9261c-ed-in-the-rendered-response-firefox-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/scr-001-intake-happy-SCR-0-9261c-ed-in-the-rendered-response-firefox-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/scr-001-intake-happy-SCR-0-9261c-ed-in-the-rendered-response-firefox-retry1/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/scr-001-intake-happy-SCR-0-9261c-ed-in-the-rendered-response-firefox-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  9) [webkit] › scr-001-intake-error-surfacing.spec.ts:12:7 › SCR-001 — Intake page (error surfacing) › TEST-Pw-003a: surfaces 500 from API into the UI
+
+    Error: expect(received).toContain(expected) // indexOf
+
+    Expected substring: "internal_error"
+    Received string:    "TypeError: crypto.randomUUID is not a function. (In 'crypto.randomUUID()', 'crypto.randomUUID' is undefined)"
+
+      22 |     await expect(page.getByTestId('intake-status')).toHaveText('error');
+      23 |     const errText = await page.getByTestId('intake-error').textContent();
+    > 24 |     expect(errText ?? '').toContain('internal_error');
+         |                           ^
+      25 |   });
+      26 |
+      27 |   test('TEST-Pw-003b: surfaces 422 validation_failed from API into the UI', async ({ page }) => {
+
+        at /app/tests/playwright/scr-001-intake-error-surfacing.spec.ts:24:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/scr-001-intake-error-surfa-f09ce-es-500-from-API-into-the-UI-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/scr-001-intake-error-surfa-f09ce-es-500-from-API-into-the-UI-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/scr-001-intake-error-surfa-f09ce-es-500-from-API-into-the-UI-webkit/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/scr-001-intake-error-surfa-f09ce-es-500-from-API-into-the-UI-webkit/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toContain(expected) // indexOf
+
+    Expected substring: "internal_error"
+    Received string:    "TypeError: crypto.randomUUID is not a function. (In 'crypto.randomUUID()', 'crypto.randomUUID' is undefined)"
+
+      22 |     await expect(page.getByTestId('intake-status')).toHaveText('error');
+      23 |     const errText = await page.getByTestId('intake-error').textContent();
+    > 24 |     expect(errText ?? '').toContain('internal_error');
+         |                           ^
+      25 |   });
+      26 |
+      27 |   test('TEST-Pw-003b: surfaces 422 validation_failed from API into the UI', async ({ page }) => {
+
+        at /app/tests/playwright/scr-001-intake-error-surfacing.spec.ts:24:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/scr-001-intake-error-surfa-f09ce-es-500-from-API-into-the-UI-webkit-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/scr-001-intake-error-surfa-f09ce-es-500-from-API-into-the-UI-webkit-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/scr-001-intake-error-surfa-f09ce-es-500-from-API-into-the-UI-webkit-retry1/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/scr-001-intake-error-surfa-f09ce-es-500-from-API-into-the-UI-webkit-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  10) [webkit] › scr-001-intake-error-surfacing.spec.ts:27:7 › SCR-001 — Intake page (error surfacing) › TEST-Pw-003b: surfaces 422 validation_failed from API into the UI
+
+    Error: expect(received).toContain(expected) // indexOf
+
+    Expected substring: "validation_failed"
+    Received string:    "TypeError: crypto.randomUUID is not a function. (In 'crypto.randomUUID()', 'crypto.randomUUID' is undefined)"
+
+      43 |     await expect(page.getByTestId('intake-status')).toHaveText('error');
+      44 |     const errText = await page.getByTestId('intake-error').textContent();
+    > 45 |     expect(errText ?? '').toContain('validation_failed');
+         |                           ^
+      46 |   });
+      47 |
+      48 |   test('TEST-Pw-003c: surfaces network failure (api down) into the UI', async ({ page }) => {
+
+        at /app/tests/playwright/scr-001-intake-error-surfacing.spec.ts:45:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/scr-001-intake-error-surfa-3470a-failed-from-API-into-the-UI-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/scr-001-intake-error-surfa-3470a-failed-from-API-into-the-UI-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/scr-001-intake-error-surfa-3470a-failed-from-API-into-the-UI-webkit/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/scr-001-intake-error-surfa-3470a-failed-from-API-into-the-UI-webkit/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toContain(expected) // indexOf
+
+    Expected substring: "validation_failed"
+    Received string:    "TypeError: crypto.randomUUID is not a function. (In 'crypto.randomUUID()', 'crypto.randomUUID' is undefined)"
+
+      43 |     await expect(page.getByTestId('intake-status')).toHaveText('error');
+      44 |     const errText = await page.getByTestId('intake-error').textContent();
+    > 45 |     expect(errText ?? '').toContain('validation_failed');
+         |                           ^
+      46 |   });
+      47 |
+      48 |   test('TEST-Pw-003c: surfaces network failure (api down) into the UI', async ({ page }) => {
+
+        at /app/tests/playwright/scr-001-intake-error-surfacing.spec.ts:45:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/scr-001-intake-error-surfa-3470a-failed-from-API-into-the-UI-webkit-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/scr-001-intake-error-surfa-3470a-failed-from-API-into-the-UI-webkit-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/scr-001-intake-error-surfa-3470a-failed-from-API-into-the-UI-webkit-retry1/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/scr-001-intake-error-surfa-3470a-failed-from-API-into-the-UI-webkit-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  11) [webkit] › scr-001-intake-happy.spec.ts:22:7 › SCR-001 — Intake page (happy) › TEST-Pw-001: submit sample intake -> 201 masked + mask_policy_version v1.0.0
+
+    TimeoutError: page.waitForResponse: Timeout 15000ms exceeded while waiting for event "response"
+
+      24 |
+      25 |     // Capture the network response so we can assert on JSON
+    > 26 |     const responsePromise = page.waitForResponse(
+         |                                  ^
+      27 |       (r) => r.url().includes('/api/v1/intake') && r.request().method() === 'POST',
+      28 |     );
+      29 |
+
+        at /app/tests/playwright/scr-001-intake-happy.spec.ts:26:34
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/scr-001-intake-happy-SCR-0-9f1e8--mask-policy-version-v1-0-0-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/scr-001-intake-happy-SCR-0-9f1e8--mask-policy-version-v1-0-0-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/scr-001-intake-happy-SCR-0-9f1e8--mask-policy-version-v1-0-0-webkit/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/scr-001-intake-happy-SCR-0-9f1e8--mask-policy-version-v1-0-0-webkit/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    TimeoutError: page.waitForResponse: Timeout 15000ms exceeded while waiting for event "response"
+
+      24 |
+      25 |     // Capture the network response so we can assert on JSON
+    > 26 |     const responsePromise = page.waitForResponse(
+         |                                  ^
+      27 |       (r) => r.url().includes('/api/v1/intake') && r.request().method() === 'POST',
+      28 |     );
+      29 |
+
+        at /app/tests/playwright/scr-001-intake-happy.spec.ts:26:34
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/scr-001-intake-happy-SCR-0-9f1e8--mask-policy-version-v1-0-0-webkit-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/scr-001-intake-happy-SCR-0-9f1e8--mask-policy-version-v1-0-0-webkit-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/scr-001-intake-happy-SCR-0-9f1e8--mask-policy-version-v1-0-0-webkit-retry1/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/scr-001-intake-happy-SCR-0-9f1e8--mask-policy-version-v1-0-0-webkit-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  12) [webkit] › scr-001-intake-happy.spec.ts:46:7 › SCR-001 — Intake page (happy) › TEST-Pw-001b: AWS access key in sample body is masked in the rendered response
+
+    TimeoutError: page.waitForResponse: Timeout 15000ms exceeded while waiting for event "response"
+
+      46 |   test('TEST-Pw-001b: AWS access key in sample body is masked in the rendered response', async ({ page }) => {
+      47 |     await page.goto('/');
+    > 48 |     const responsePromise = page.waitForResponse(
+         |                                  ^
+      49 |       (r) => r.url().includes('/api/v1/intake') && r.request().method() === 'POST',
+      50 |     );
+      51 |     await page.getByTestId('submit-sample').click();
+
+        at /app/tests/playwright/scr-001-intake-happy.spec.ts:48:34
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/scr-001-intake-happy-SCR-0-9261c-ed-in-the-rendered-response-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/scr-001-intake-happy-SCR-0-9261c-ed-in-the-rendered-response-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/scr-001-intake-happy-SCR-0-9261c-ed-in-the-rendered-response-webkit/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/scr-001-intake-happy-SCR-0-9261c-ed-in-the-rendered-response-webkit/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    TimeoutError: page.waitForResponse: Timeout 15000ms exceeded while waiting for event "response"
+
+      46 |   test('TEST-Pw-001b: AWS access key in sample body is masked in the rendered response', async ({ page }) => {
+      47 |     await page.goto('/');
+    > 48 |     const responsePromise = page.waitForResponse(
+         |                                  ^
+      49 |       (r) => r.url().includes('/api/v1/intake') && r.request().method() === 'POST',
+      50 |     );
+      51 |     await page.getByTestId('submit-sample').click();
+
+        at /app/tests/playwright/scr-001-intake-happy.spec.ts:48:34
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/scr-001-intake-happy-SCR-0-9261c-ed-in-the-rendered-response-webkit-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/scr-001-intake-happy-SCR-0-9261c-ed-in-the-rendered-response-webkit-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/scr-001-intake-happy-SCR-0-9261c-ed-in-the-rendered-response-webkit-retry1/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/scr-001-intake-happy-SCR-0-9261c-ed-in-the-rendered-response-webkit-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  12 failed
+    [chromium] › scr-001-intake-error-surfacing.spec.ts:12:7 › SCR-001 — Intake page (error surfacing) › TEST-Pw-003a: surfaces 500 from API into the UI
+    [chromium] › scr-001-intake-error-surfacing.spec.ts:27:7 › SCR-001 — Intake page (error surfacing) › TEST-Pw-003b: surfaces 422 validation_failed from API into the UI
+    [chromium] › scr-001-intake-happy.spec.ts:22:7 › SCR-001 — Intake page (happy) › TEST-Pw-001: submit sample intake -> 201 masked + mask_policy_version v1.0.0
+    [chromium] › scr-001-intake-happy.spec.ts:46:7 › SCR-001 — Intake page (happy) › TEST-Pw-001b: AWS access key in sample body is masked in the rendered response
+    [firefox] › scr-001-intake-error-surfacing.spec.ts:12:7 › SCR-001 — Intake page (error surfacing) › TEST-Pw-003a: surfaces 500 from API into the UI
+    [firefox] › scr-001-intake-error-surfacing.spec.ts:27:7 › SCR-001 — Intake page (error surfacing) › TEST-Pw-003b: surfaces 422 validation_failed from API into the UI
+    [firefox] › scr-001-intake-happy.spec.ts:22:7 › SCR-001 — Intake page (happy) › TEST-Pw-001: submit sample intake -> 201 masked + mask_policy_version v1.0.0
+    [firefox] › scr-001-intake-happy.spec.ts:46:7 › SCR-001 — Intake page (happy) › TEST-Pw-001b: AWS access key in sample body is masked in the rendered response
+    [webkit] › scr-001-intake-error-surfacing.spec.ts:12:7 › SCR-001 — Intake page (error surfacing) › TEST-Pw-003a: surfaces 500 from API into the UI
+    [webkit] › scr-001-intake-error-surfacing.spec.ts:27:7 › SCR-001 — Intake page (error surfacing) › TEST-Pw-003b: surfaces 422 validation_failed from API into the UI
+    [webkit] › scr-001-intake-happy.spec.ts:22:7 › SCR-001 — Intake page (happy) › TEST-Pw-001: submit sample intake -> 201 masked + mask_policy_version v1.0.0
+    [webkit] › scr-001-intake-happy.spec.ts:46:7 › SCR-001 — Intake page (happy) › TEST-Pw-001b: AWS access key in sample body is masked in the rendered response
+  27 passed (4.9m)
+
+
+What's next:
+    Debug this Compose error with Gordon → docker ai "help me fix this compose error"
+
+=== PLAYWRIGHT FAILED (rc=1) — see ./playwright-report/index.html ===
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci> date
+
+17 May 2026 15:39:20
+
+
+PS C:\Users\v_sen\Documents\Projects\0008_AT_Hack0020_MendoraCI_IBM_Bob\mendoraci>
