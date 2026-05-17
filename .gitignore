@@ -35,3 +35,18 @@ infra/data/
 # Secrets — never commit
 *.pem
 *.key
+
+# Local audit backups (FILE BACKUP RULE) — never committed
+_backup/
+**/_backup/
+
+# Local Claude command logs
+logs/ps_cmd_log/
+
+# Demo recordings (large + transient); MP4 added with git add -f
+demo/_backup/
+demo/thumb_*.png
+demo/*.webm
+demovideo/.runner/
+demovideo/results/creation/latest.txt
+tests/playwright/test-results-demo/
