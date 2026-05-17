@@ -1,0 +1,86 @@
+/**
+ * MendoraCI API — Fastify entrypoint.
+ *
+ * Anchors:
+ *   - RT-001 CI Log Intake (API-001, API-002)
+ *   - RT-008 Mask Policy v1 pre-persist (BR-008, mandatory)
+ *   - RT-013 Multi-Tenant Isolation (RLS via SET LOCAL app.tenant_id)
+ *   - RT-015 Idempotency & Replay (Idempotency-Key header required on writes)
+ */
+import Fastify, { type FastifyInstance } from 'fastify';
+import sensible from '@fastify/sensible';
+import { intakeRoutes } from './routes/intake.js';
+import { healthRoutes } from './routes/health.js';
+import { dbPlugin } from './lib/db.js';
+import { tenantContextPlugin } from './middleware/tenant-context.js';
+import { errorHandler } from './middleware/error-handler.js';
+
+export interface AppConfig {
+  databaseUrl: string;
+  port: number;
+  host: string;
+  logLevel: string;
+  maskPolicyVersion: string;
+}
+
+export function loadConfig(): AppConfig {
+  return {
+    databaseUrl: process.env.DATABASE_URL ?? '',
+    port: Number(process.env.API_PORT ?? 4000),
+    host: process.env.API_HOST ?? '0.0.0.0',
+    logLevel: process.env.LOG_LEVEL ?? 'info',
+    maskPolicyVersion: process.env.MASK_POLICY_VERSION ?? 'v1.0.0',
+  };
+}
+
+export async function buildApp(config: AppConfig = loadConfig()): Promise<FastifyInstance> {
+  const app = Fastify({
+    logger: {
+      level: config.logLevel,
+      transport:
+        process.env.NODE_ENV === 'development'
+          ? { target: 'pino-pretty', options: { colorize: true } }
+          : undefined,
+    },
+    // 100 MB request size cap — defensive; per-route 50 MB enforced in handler.
+    bodyLimit: 100 * 1024 * 1024,
+    trustProxy: true,
+  });
+
+  // Make config available everywhere.
+  app.decorate('config', config);
+
+  await app.register(sensible);
+  await app.register(dbPlugin, { connectionString: config.databaseUrl });
+  await app.register(tenantContextPlugin);
+  await app.register(healthRoutes);
+  await app.register(intakeRoutes, { prefix: '/v1' });
+
+  app.setErrorHandler(errorHandler);
+
+  return app;
+}
+
+declare module 'fastify' {
+  interface FastifyInstance {
+    config: AppConfig;
+  }
+}
+
+/* c8 ignore start -- entrypoint, exercised via docker compose up not unit tests */
+async function main() {
+  const config = loadConfig();
+  const app = await buildApp(config);
+  try {
+    await app.listen({ port: config.port, host: config.host });
+    app.log.info(`MendoraCI API listening on http://${config.host}:${config.port}`);
+  } catch (err) {
+    app.log.error(err);
+    process.exit(1);
+  }
+}
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  void main();
+}
+/* c8 ignore stop */
