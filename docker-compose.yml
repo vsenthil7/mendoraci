@@ -127,6 +127,19 @@ services:
     environment:
       NODE_ENV: development
       NEXT_PUBLIC_API_BASE_URL: http://api:4000
+      # Next.js dev needs to know to poll on bind mounts (Windows file events don't propagate to Linux containers)
+      WATCHPACK_POLLING: "true"
+      CHOKIDAR_USEPOLLING: "true"
+    # CP-3e fix: mount source so changes to apps/web/src/* hot-reload via `next dev`.
+    # node_modules and .next stay in the image to avoid Windows<->Linux symlink and
+    # binary compatibility issues with workspace deps and SWC.
+    volumes:
+      - ./apps/web/src:/app/apps/web/src
+      - ./apps/web/public:/app/apps/web/public
+      - ./apps/web/next.config.mjs:/app/apps/web/next.config.mjs
+      - ./apps/web/tailwind.config.ts:/app/apps/web/tailwind.config.ts
+      - ./apps/web/postcss.config.cjs:/app/apps/web/postcss.config.cjs
+      - ./apps/web/tsconfig.json:/app/apps/web/tsconfig.json
     depends_on:
       api:
         condition: service_healthy
@@ -152,6 +165,7 @@ services:
       CI: "1"
     volumes:
       - ./playwright-report:/app/playwright-report
+      - ./tests:/app/tests
     depends_on:
       postgres:
         condition: service_healthy
