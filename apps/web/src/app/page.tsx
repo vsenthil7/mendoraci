@@ -80,13 +80,20 @@ export default function IntakePage() {
       </div>
 
       {intakeId ? (
-        <div className="mt-2 text-sm">
+        <div className="mt-2 space-x-4 text-sm">
           <a
             data-testid="link-to-repo-form"
             href={`/intake/${intakeId}/repo`}
             className="text-blue-700 underline hover:text-blue-900"
           >
-            Link a repository to this intake (SCR-002) →
+            Link a repository (SCR-002) →
+          </a>
+          <a
+            data-testid="link-to-rca-form"
+            href={`/intake/${intakeId}/rca`}
+            className="text-blue-700 underline hover:text-blue-900"
+          >
+            Run RCA with Bob (SCR-003) →
           </a>
         </div>
       ) : null}
