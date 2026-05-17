@@ -35,6 +35,9 @@ import {
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+// Preview length sent to Bob (4096 chars matches GET /intake/:id behavior).
+const PREVIEW_CHARS = 4096;
+
 function err(reply: any, status: number, code: string, message: string, extra?: object) {
   return reply
     .code(status)
@@ -75,17 +78,21 @@ export const rcaRoutes: FastifyPluginAsync = async (app) => {
     }
     const chatMode = parsedBody.data.chat_mode ?? 'ask';
 
-    // ---------- Step 1: load intake + masked preview under tenant context -----
+    // ---------- Step 1: load intake + masked body under tenant context -------
+    // Note: raw_intake stores the full masked body in `body_masked`. We slice
+    // a preview here (matches the 4096-char window the GET /intake/:id route
+    // exposes) before sending to Bob, so the prompt fits within Bob's input
+    // budget regardless of original log size.
     const intakeInfo = await app.withTenant(request.tenantId, async (client) => {
       const r = await client.query<{
         intake_id: string;
         provider: string;
         branch: string | null;
         commit_sha: string | null;
-        body_masked_preview: string | null;
+        body_masked: string | null;
       }>(
         `SELECT m.intake_id, m.provider, m.branch, m.commit_sha,
-                r.body_masked_preview
+                r.body_masked
            FROM intake_meta m
            JOIN raw_intake  r ON r.intake_id = m.intake_id
           WHERE m.intake_id = $1
@@ -100,7 +107,8 @@ export const rcaRoutes: FastifyPluginAsync = async (app) => {
       return err(reply, 404, 'intake_not_found', 'no intake found for this id');
     }
 
-    if (!intakeInfo.body_masked_preview || intakeInfo.body_masked_preview.trim().length === 0) {
+    const maskedPreview = (intakeInfo.body_masked ?? '').slice(0, PREVIEW_CHARS).trim();
+    if (maskedPreview.length === 0) {
       return err(
         reply,
         412,
@@ -111,7 +119,7 @@ export const rcaRoutes: FastifyPluginAsync = async (app) => {
 
     // ---------- Step 2: build prompt + call Bob (or mock-Bob) ----------------
     const prompt = buildRcaPrompt({
-      maskedLogPreview: intakeInfo.body_masked_preview,
+      maskedLogPreview: maskedPreview,
       intakeId,
       branch: intakeInfo.branch ?? undefined,
       commitSha: intakeInfo.commit_sha ?? undefined,

@@ -11,9 +11,9 @@ import pg from 'pg';
  *   TEST-008    happy RCA with mock-Bob       -> 201
  *   TEST-009    cross-tenant attempt          -> 404 intake_not_found (RLS)
  *   TEST-010    unknown intake                -> 404
- *   TEST-011    missing mask preview          -> 412 mask_preview_unavailable
- *   NEG x3      invalid intake_id 400, missing tenant 401, validation 422
- *   plus        GET round-trip with evidence
+ *   TEST-011    empty masked body             -> 412 mask_preview_unavailable
+ *   NEG x4      invalid intake_id 400, missing tenant 401, validation 422,
+ *               GET-before-RCA 404 rca_not_found
  *
  * All tests run with USE_MOCK_BOB=true so they're deterministic and don't
  * burn real IBM Bob tokens. Real Bob is verified separately by the smoke
@@ -187,15 +187,13 @@ describe('RCA routes (CP-5 integration, mock-Bob)', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // TEST-011 — missing mask preview -> 412 precondition
+  // TEST-011 — empty masked body -> 412 precondition
   // ---------------------------------------------------------------------------
-  it('TEST-011: intake with empty masked preview returns 412', async () => {
+  it('TEST-011: intake with empty masked body returns 412', async () => {
     const intakeId = await createIntake(TENANT_A);
-    // Clear out the masked preview directly to simulate a bad upstream.
-    await pool.query("SELECT set_config('app.tenant_id', $1, true)", [TENANT_A]);
-    await pool.query(`UPDATE raw_intake SET body_masked_preview = '' WHERE intake_id = $1`, [
-      intakeId,
-    ]);
+    // Clear out the masked body directly to simulate a degraded upstream.
+    // Admin pool bypasses RLS for this setup-only update.
+    await pool.query(`UPDATE raw_intake SET body_masked = '' WHERE intake_id = $1`, [intakeId]);
 
     const res = await app.inject({
       method: 'POST',
