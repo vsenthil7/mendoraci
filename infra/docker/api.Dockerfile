@@ -7,8 +7,10 @@ ENV PNPM_HOME=/usr/local/share/pnpm \
 RUN corepack enable && corepack prepare pnpm@9.12.0 --activate && apk add --no-cache wget
 
 FROM base AS deps
+# Copy manifests only first for layer caching.
 COPY package.json pnpm-workspace.yaml ./
 COPY apps/api/package.json apps/api/
+COPY apps/web/package.json apps/web/
 COPY packages/shared/package.json packages/shared/
 COPY packages/mask-policy/package.json packages/mask-policy/
 RUN pnpm install --no-frozen-lockfile
@@ -17,6 +19,9 @@ FROM deps AS dev
 COPY tsconfig.base.json ./
 COPY apps/api ./apps/api
 COPY packages ./packages
+# Build shared/mask-policy once so apps/api can import them.
+RUN pnpm --filter @mendoraci/shared build \
+ && pnpm --filter @mendoraci/mask-policy build
 EXPOSE 4000
 WORKDIR /app/apps/api
 CMD ["pnpm", "dev"]
@@ -25,9 +30,9 @@ FROM deps AS build
 COPY tsconfig.base.json ./
 COPY apps/api ./apps/api
 COPY packages ./packages
-RUN pnpm --filter ./packages/shared build \
- && pnpm --filter ./packages/mask-policy build \
- && pnpm --filter ./apps/api build
+RUN pnpm --filter @mendoraci/shared build \
+ && pnpm --filter @mendoraci/mask-policy build \
+ && pnpm --filter @mendoraci/api build
 
 FROM node:20-alpine AS prod
 WORKDIR /app

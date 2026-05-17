@@ -9,13 +9,16 @@ RUN corepack enable && corepack prepare pnpm@9.12.0 --activate
 FROM base AS deps
 COPY package.json pnpm-workspace.yaml ./
 COPY apps/web/package.json apps/web/
+COPY apps/api/package.json apps/api/
 COPY packages/shared/package.json packages/shared/
+COPY packages/mask-policy/package.json packages/mask-policy/
 RUN pnpm install --no-frozen-lockfile
 
 FROM deps AS dev
 COPY tsconfig.base.json ./
 COPY apps/web ./apps/web
 COPY packages ./packages
+RUN pnpm --filter @mendoraci/shared build
 EXPOSE 3000
 WORKDIR /app/apps/web
 CMD ["pnpm", "dev"]
@@ -24,7 +27,7 @@ FROM deps AS build
 COPY tsconfig.base.json ./
 COPY apps/web ./apps/web
 COPY packages ./packages
-RUN pnpm --filter ./packages/shared build && pnpm --filter ./apps/web build
+RUN pnpm --filter @mendoraci/shared build && pnpm --filter @mendoraci/web build
 
 FROM node:20-alpine AS prod
 WORKDIR /app

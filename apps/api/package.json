@@ -13,14 +13,15 @@
     "test": "vitest run --coverage",
     "test:unit": "vitest run test/unit --coverage",
     "test:integration": "vitest run test/integration --coverage",
-    "db:migrate": "node-pg-migrate up -d $DATABASE_URL -m src/db/migrations -j ts",
-    "db:migrate:down": "node-pg-migrate down -d $DATABASE_URL -m src/db/migrations -j ts"
+    "db:migrate": "node-pg-migrate up -m src/db/migrations -j cjs",
+    "db:migrate:down": "node-pg-migrate down -m src/db/migrations -j cjs"
   },
   "dependencies": {
     "@fastify/sensible": "^6.0.1",
     "@mendoraci/mask-policy": "workspace:*",
     "@mendoraci/shared": "workspace:*",
     "fastify": "^5.0.0",
+    "fastify-plugin": "^5.0.1",
     "pg": "^8.13.0",
     "pino-pretty": "^11.2.2",
     "uuid": "^10.0.0",
