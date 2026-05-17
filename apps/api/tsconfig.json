@@ -3,11 +3,7 @@
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src",
-    "types": ["node"],
-    "paths": {
-      "@mendoraci/shared": ["../../packages/shared/dist/index.d.ts"],
-      "@mendoraci/mask-policy": ["../../packages/mask-policy/dist/index.d.ts"]
-    }
+    "types": ["node"]
   },
   "include": ["src/**/*.ts"]
 }
