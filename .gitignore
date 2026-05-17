@@ -1,0 +1,30 @@
+node_modules/
+.next/
+dist/
+build/
+coverage/
+.turbo/
+.cache/
+.env
+.env.local
+.env.*.local
+!.env.example
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+playwright-report/
+test-results/
+playwright/.cache/
+*.tsbuildinfo
+
+# Docker volume mounts (dev-only)
+infra/data/
+
+# Evidence pack temp output
+.evidence/
+
+# Secrets — never commit
+*.pem
+*.key

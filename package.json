@@ -1,0 +1,26 @@
+{
+  "name": "mendoraci",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@9.12.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "pnpm -r --filter='./packages/*' build && pnpm -r --filter='./apps/*' build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r --filter='./packages/*' --filter='./apps/*' test",
+    "test:unit": "pnpm --filter './packages/*' test && pnpm --filter './apps/api' test:unit",
+    "test:integration": "pnpm --filter './apps/api' test:integration",
+    "test:e2e": "playwright test --config=tests/playwright/playwright.config.ts",
+    "test:all": "pnpm test:unit && pnpm test:integration && pnpm test:e2e",
+    "db:migrate": "pnpm --filter './apps/api' db:migrate",
+    "db:seed": "pnpm --filter './apps/api' db:seed"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0",
+    "typescript": "^5.5.4"
+  }
+}
