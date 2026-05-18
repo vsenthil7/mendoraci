@@ -86,14 +86,21 @@ export default function IntakePage() {
             href={`/intake/${intakeId}/repo`}
             className="text-blue-700 underline hover:text-blue-900"
           >
-            Link a repository (SCR-002) →
+            Link repo (SCR-002) →
           </a>
           <a
             data-testid="link-to-rca-form"
             href={`/intake/${intakeId}/rca`}
             className="text-blue-700 underline hover:text-blue-900"
           >
-            Run RCA with Bob (SCR-003) →
+            Run RCA (SCR-003) →
+          </a>
+          <a
+            data-testid="link-to-repair-plan-form"
+            href={`/intake/${intakeId}/repair-plan`}
+            className="text-blue-700 underline hover:text-blue-900"
+          >
+            Repair plan (SCR-004) →
           </a>
         </div>
       ) : null}
