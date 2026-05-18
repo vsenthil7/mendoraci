@@ -12,6 +12,10 @@ import { DEMO_TENANT_ID } from '../../../../lib/client';
  * (title + description + type + files + effort + risk), rollback strategy.
  * Surfaces 412 rca_required (no RCA yet), 404 intake_not_found, 503/504 Bob
  * failures. Each step has data-testid hooks for Pw assertions.
+ *
+ * CP-7b: after a plan is generated, renders a link to the SCR-005 approver
+ * page (/repair-plan/:repair_plan_id/approve) so the operator can submit it
+ * for review.
  */
 
 type PlanStatus = 'idle' | 'submitting' | 'done' | 'error';
@@ -134,118 +138,130 @@ export default function RepairPlanPage() {
       </div>
 
       {plan ? (
-        <div data-testid="plan-result" className="mt-4 space-y-4 rounded border border-slate-200 bg-white p-6">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <div>
-              <div className="text-xs uppercase tracking-wide text-slate-500">Provider</div>
-              <div data-testid="plan-provider" className="font-mono text-sm text-slate-900">
-                {plan.provider} ({plan.model_id})
+        <>
+          <div className="mt-2 text-sm">
+            <a
+              data-testid="link-to-approver"
+              href={`/repair-plan/${plan.repair_plan_id}/approve`}
+              className="text-blue-700 underline hover:text-blue-900"
+            >
+              Approve this plan (SCR-005) →
+            </a>
+          </div>
+
+          <div data-testid="plan-result" className="mt-4 space-y-4 rounded border border-slate-200 bg-white p-6">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <div className="text-xs uppercase tracking-wide text-slate-500">Provider</div>
+                <div data-testid="plan-provider" className="font-mono text-sm text-slate-900">
+                  {plan.provider} ({plan.model_id})
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-xs uppercase tracking-wide text-slate-500">Latency</div>
+                <div data-testid="plan-latency" className="font-mono text-sm text-slate-900">
+                  {plan.bob_latency_ms} ms
+                </div>
               </div>
             </div>
-            <div className="text-right">
-              <div className="text-xs uppercase tracking-wide text-slate-500">Latency</div>
-              <div data-testid="plan-latency" className="font-mono text-sm text-slate-900">
-                {plan.bob_latency_ms} ms
+
+            <div>
+              <div className="text-xs uppercase tracking-wide text-slate-500">Summary</div>
+              <div data-testid="plan-summary" className="text-base text-slate-900">
+                {plan.output.summary}
               </div>
             </div>
-          </div>
 
-          <div>
-            <div className="text-xs uppercase tracking-wide text-slate-500">Summary</div>
-            <div data-testid="plan-summary" className="text-base text-slate-900">
-              {plan.output.summary}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div>
-              <div className="text-xs uppercase tracking-wide text-slate-500">Overall risk</div>
-              <span
-                data-testid="plan-overall-risk"
-                className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${riskColor[plan.output.overall_risk]}`}
-              >
-                {plan.output.overall_risk}
-              </span>
-            </div>
-            <div>
-              <div className="text-xs uppercase tracking-wide text-slate-500">Total effort</div>
-              <span
-                data-testid="plan-total-effort"
-                className="inline-block rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-800"
-              >
-                {plan.output.est_total_effort}
-              </span>
-            </div>
-          </div>
-
-          <div>
-            <div className="mb-2 text-xs uppercase tracking-wide text-slate-500">
-              Steps ({plan.output.steps.length})
-            </div>
-            <ol data-testid="plan-steps" className="space-y-3">
-              {plan.output.steps.map((s, i) => (
-                <li
-                  key={i}
-                  data-testid={`plan-step-${i}`}
-                  className="rounded border border-slate-200 p-3"
+            <div className="flex items-center gap-4">
+              <div>
+                <div className="text-xs uppercase tracking-wide text-slate-500">Overall risk</div>
+                <span
+                  data-testid="plan-overall-risk"
+                  className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${riskColor[plan.output.overall_risk]}`}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1">
-                      <div
-                        data-testid={`plan-step-${i}-title`}
-                        className="font-medium text-slate-900"
-                      >
-                        {i + 1}. {s.title}
-                      </div>
-                      <div
-                        data-testid={`plan-step-${i}-description`}
-                        className="mt-1 text-sm text-slate-700"
-                      >
-                        {s.description}
-                      </div>
-                      {s.files && s.files.length > 0 ? (
-                        <div className="mt-1 text-xs text-slate-500">
-                          Files:{' '}
-                          {s.files.map((f, j) => (
-                            <span key={j} className="mr-2 font-mono">
-                              {f}
-                            </span>
-                          ))}
-                        </div>
-                      ) : null}
-                    </div>
-                    <div className="flex flex-col items-end gap-1 text-xs">
-                      <span className="rounded bg-slate-100 px-2 py-0.5 font-mono text-slate-700">
-                        {s.type}
-                      </span>
-                      <span
-                        data-testid={`plan-step-${i}-risk`}
-                        className={`rounded px-2 py-0.5 font-medium ${riskColor[s.risk]}`}
-                      >
-                        {s.risk}
-                      </span>
-                      <span
-                        data-testid={`plan-step-${i}-effort`}
-                        className="rounded bg-slate-100 px-2 py-0.5 font-mono text-slate-700"
-                      >
-                        {s.est_effort}
-                      </span>
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </div>
+                  {plan.output.overall_risk}
+                </span>
+              </div>
+              <div>
+                <div className="text-xs uppercase tracking-wide text-slate-500">Total effort</div>
+                <span
+                  data-testid="plan-total-effort"
+                  className="inline-block rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-800"
+                >
+                  {plan.output.est_total_effort}
+                </span>
+              </div>
+            </div>
 
-          <div>
-            <div className="mb-1 text-xs uppercase tracking-wide text-slate-500">
-              Rollback strategy
+            <div>
+              <div className="mb-2 text-xs uppercase tracking-wide text-slate-500">
+                Steps ({plan.output.steps.length})
+              </div>
+              <ol data-testid="plan-steps" className="space-y-3">
+                {plan.output.steps.map((s, i) => (
+                  <li
+                    key={i}
+                    data-testid={`plan-step-${i}`}
+                    className="rounded border border-slate-200 p-3"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <div
+                          data-testid={`plan-step-${i}-title`}
+                          className="font-medium text-slate-900"
+                        >
+                          {i + 1}. {s.title}
+                        </div>
+                        <div
+                          data-testid={`plan-step-${i}-description`}
+                          className="mt-1 text-sm text-slate-700"
+                        >
+                          {s.description}
+                        </div>
+                        {s.files && s.files.length > 0 ? (
+                          <div className="mt-1 text-xs text-slate-500">
+                            Files:{' '}
+                            {s.files.map((f, j) => (
+                              <span key={j} className="mr-2 font-mono">
+                                {f}
+                              </span>
+                            ))}
+                          </div>
+                        ) : null}
+                      </div>
+                      <div className="flex flex-col items-end gap-1 text-xs">
+                        <span className="rounded bg-slate-100 px-2 py-0.5 font-mono text-slate-700">
+                          {s.type}
+                        </span>
+                        <span
+                          data-testid={`plan-step-${i}-risk`}
+                          className={`rounded px-2 py-0.5 font-medium ${riskColor[s.risk]}`}
+                        >
+                          {s.risk}
+                        </span>
+                        <span
+                          data-testid={`plan-step-${i}-effort`}
+                          className="rounded bg-slate-100 px-2 py-0.5 font-mono text-slate-700"
+                        >
+                          {s.est_effort}
+                        </span>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ol>
             </div>
-            <div data-testid="plan-rollback" className="text-sm text-slate-700">
-              {plan.output.rollback_strategy}
+
+            <div>
+              <div className="mb-1 text-xs uppercase tracking-wide text-slate-500">
+                Rollback strategy
+              </div>
+              <div data-testid="plan-rollback" className="text-sm text-slate-700">
+                {plan.output.rollback_strategy}
+              </div>
             </div>
           </div>
-        </div>
+        </>
       ) : null}
 
       {error ? (
