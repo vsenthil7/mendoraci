@@ -13,10 +13,15 @@ import { TEST_API, TEST_TENANT } from './playwright.config';
  *   Pw-012f row checkboxes + select-all + Open link nav to
  *           /repair-plan/[id]/approve
  *
- * Note: filter-repair-plan-id is an UN-debounced input (because typing a
- * full UUID by hand is rare; users will paste or arrive via URL). Pw tests
- * therefore drive that filter via page.goto to avoid 36-keystroke fetch
- * races, NOT via .fill().
+ * Note: filter-repair-plan-id is an UN-debounced input (real users paste
+ * UUIDs, they don't type them). Pw tests drive that filter via page.goto
+ * NOT .fill().
+ *
+ * CP-9.6 fix on Pw-012f: replaced two-gotoAndWait pattern with single-
+ * navigation + from-window so both plans' rows are visible on the same
+ * page. The Open link triggers /repair-plan/[id]/approve which fires
+ * a GET on mount; the previous two-goto pattern raced with that slow
+ * destination on firefox dev mode. Same lesson as CP-9.3d Pw-013f.
  */
 
 async function seedPipeline(
@@ -191,40 +196,44 @@ test.describe('SCR-010 — Approvals list page', () => {
   });
 
   test('TEST-Pw-012f: checkboxes + select-all + Open nav', async ({ page }) => {
+    // CP-9.6 fix: replaced two-gotoAndWait pattern with single-navigation +
+    // from-window. Both plans' rows are visible on the same page so we
+    // never re-navigate the list page before the Open link click. The Open
+    // link goes to /repair-plan/[id]/approve (SCR-005) which does a GET on
+    // mount — same slow-destination shape as SCR-011 Pw-013f, same fix.
     const a = await seedPipeline(`sel-${Date.now()}-a`, 'approve');
     await new Promise((r) => setTimeout(r, 5));
     const b = await seedPipeline(`sel-${Date.now()}-b`, 'approve');
     await new Promise((r) => setTimeout(r, 5));
 
-    // Scope to plan a (2 audit rows). filter-repair-plan-id is un-debounced
-    // so we drive it via URL not .fill() to avoid per-keystroke fetch races.
-    await gotoAndWait(page, `/approvals?repair_plan_id=${a.repairPlanId}`);
+    // from-window scopes the list to 4 audit rows (2 per plan × 2 plans)
+    const fromIso = new Date(Date.now() - 60_000).toISOString();
+    await gotoAndWait(page, `/approvals?from=${encodeURIComponent(fromIso)}`);
     await expect
       .poll(async () => await page.locator('[data-testid^="approval-row-"]').count())
-      .toBe(2);
+      .toBeGreaterThanOrEqual(4);
 
-    const firstApprovalId = await page
-      .locator('[data-testid^="approval-row-"]')
+    // Pick plan a's first audit row (most-recent ones are at the top, so
+    // we filter the visible rows by data-repair-plan-id to find one for a)
+    const aApprovalId = await page
+      .locator(`[data-testid^="approval-row-"][data-repair-plan-id="${a.repairPlanId}"]`)
       .first()
       .evaluate((n) => (n as HTMLElement).getAttribute('data-approval-id'));
-    expect(firstApprovalId).toBeTruthy();
+    expect(aApprovalId).toBeTruthy();
 
-    await page.getByTestId(`row-checkbox-${firstApprovalId}`).check();
+    await page.getByTestId(`row-checkbox-${aApprovalId}`).check();
     await expect(page.getByTestId('selection-count')).toHaveText('1 selected');
 
     await page.getByTestId('select-all').check();
-    await expect(page.getByTestId('selection-count')).toHaveText('2 selected');
+    const visibleCount = await page.locator('[data-testid^="approval-row-"]').count();
+    await expect(page.getByTestId('selection-count')).toHaveText(`${visibleCount} selected`);
 
     await page.getByTestId('select-all').uncheck();
     await expect(page.getByTestId('selection-count')).toHaveCount(0);
 
-    // Switch scope to plan b via URL navigation (no per-keystroke race)
-    await gotoAndWait(page, `/approvals?repair_plan_id=${b.repairPlanId}`);
-    await expect
-      .poll(async () => await page.locator('[data-testid^="approval-row-"]').count())
-      .toBe(2);
+    // Plan b's first audit row's Open link → /repair-plan/[id]/approve
     const bApprovalId = await page
-      .locator('[data-testid^="approval-row-"]')
+      .locator(`[data-testid^="approval-row-"][data-repair-plan-id="${b.repairPlanId}"]`)
       .first()
       .evaluate((n) => (n as HTMLElement).getAttribute('data-approval-id'));
     expect(bApprovalId).toBeTruthy();
