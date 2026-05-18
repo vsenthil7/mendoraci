@@ -3,10 +3,10 @@
 > **Companion to `MendoraCI_Traceability.md`** (source-of-truth, preserved).
 > Updated after every dev commit per CLAUDE_RULES (17/05/2026 13:40).
 
-**Last update:** 2026-05-18 05:57 BST — CP-9.1f shipped: `GET /v1/approvals`
-+ `GET /v1/evidence-exports` routes + 10 integration tests green + 77/77 full
-integration regression green. RT-007 backend phase **COMPLETE (5/5 endpoints)**.
-**Repo:** https://github.com/vsenthil7/mendoraci (HEAD: b4421c4 + on-disk CP-9.1f)
+**Last update:** 2026-05-18 06:40 BST — CP-9.2 `/intakes` list page shipped:
+shared list-utils lib + enterprise-grade Next.js list page + 18 Playwright
+cases green across chromium + firefox + webkit. First UI list page live.
+**Repo:** https://github.com/vsenthil7/mendoraci (HEAD: a13aafb + on-disk CP-9.2)
 
 ---
 
@@ -20,13 +20,13 @@ integration regression green. RT-007 backend phase **COMPLETE (5/5 endpoints)**.
 | RT-004 | Repair Plan | **tested + E2E** ✅ | bc0cd93 | 8 vitest + 6 Pw × 3 = 18 |
 | RT-005 | Approval Workflow | **tested + E2E** ✅ | 3d5fef4 | 11 vitest + 6 Pw × 3 = 18 |
 | RT-006 | Evidence Export | **backend tested + E2E** ✅, SCR-006 Pw on disk pending run | 401ff4e | 8 vitest, 18 Pw on disk |
-| RT-007 | Analytics list views | **backend 5/5 endpoints complete** ✅; UI list pages pending CP-9.2..9.4 | b4421c4 + on-disk CP-9.1f | 26/26 vitest green |
+| RT-007 | Analytics list views | **backend complete 5/5** ✅, UI list pages 1/5 (`/intakes` live) 🟡 | a13aafb + on-disk CP-9.2 | 26 vitest + 18 Pw × 3 = 44 green |
 | RT-008 | Secret Masking | **tested + E2E** ✅ | 35149e8 | 16 unit + cross-test |
 | RT-013 | Multi-Tenant Isolation | **DB-enforced** ✅ | 226d947 | TEST-007/009/013/019/022/LST-INTAKE-4/LST-RCA-4/LST-PLAN-4/LST-APPROVAL-4/LST-EVIDENCE-4 RLS proven on 10 tables |
 | RT-015 | Idempotency & Replay | **tested + E2E** ✅ | e9320a1 | replay vitest + Pw missing-key |
 | RT-009..RT-012, RT-014, RT-016..RT-020 | — | not-started | — | — |
 
-**Roll-up: 10 / 20 RT rows fully tested+E2E (backend). Totals: 16 mask + 77 vitest integration + 6 cursor unit + 114 Playwright = 213/213 green** (Pw SCR-006 18 cases on disk; will push Pw to 132 / 231 once next full run completes).
+**Roll-up: 10 / 20 RT rows fully tested+E2E (backend); RT-007 UI phase 1/5 underway. Totals: 16 mask + 77 vitest integration + 6 cursor unit + 132 Playwright = 231/231 green** (18 SCR-006 Pw still on disk pending run; would push to 249).
 
 ---
 
@@ -46,7 +46,8 @@ Interim top-nav refactor (sessionStorage, **deleted in CP-9.5**) + SCR-006 evide
 
 | Commit | Pushed | What |
 |---|---|---|
-| _on disk CP-9.1f_ | — | `GET /v1/approvals` + `GET /v1/evidence-exports` routes + 10 integration tests green; 77/77 full integration regression green |
+| _on disk CP-9.2_ | — | `/intakes` list page (SCR-007) + shared list-utils + 18 Pw cases green across chromium+firefox+webkit |
+| `a13aafb` | 06:00 BST 18/05 | CP-9.1f `GET /v1/approvals` + `GET /v1/evidence-exports` + 10 integration tests green; RT-007 backend phase complete (5/5) |
 | `b4421c4` | 05:34 BST 18/05 | CP-9.1e `GET /v1/repair-plans` + 5 tests green (no fix loop) |
 | `9d87ee3` | 05:25 BST 18/05 | CP-9.1d `GET /v1/rca-findings` + 5 tests green (jsonb_array_length fix loop) |
 | `d6f62ee` | 05:13 BST 18/05 | CP-9.1c `GET /v1/intakes` + 6 integration tests + 57/57 regression |
@@ -78,8 +79,8 @@ Interim top-nav refactor (sessionStorage, **deleted in CP-9.5**) + SCR-006 evide
 | minio | minio:RELEASE.2024-12-13 | ✅ healthy + 2 buckets |
 | api-migrate | mendoraci-api | ✅ exited 0 (6 migrations) |
 | api | mendoraci-api | ✅ /health 200, **11 route plugins live** (intake, repo-link, rca, repair-plan, approval, evidence-export, intakes-list, rca-list, repair-plans-list, approvals-list, evidence-exports-list) |
-| web | mendoraci-web (Next.js 14) | ✅ SCR-001..006 all routable |
-| test | mendoraci-test (Playwright 1.60.0-jammy × 3 browsers) | ✅ 114/114 last full run; SCR-006 18 cases on disk run pending |
+| web | mendoraci-web (Next.js 14) | ✅ SCR-001..006 routable + **SCR-007 `/intakes` live (CP-9.2)** |
+| test | mendoraci-test (Playwright 1.60.0-jammy × 3 browsers) | ✅ 132/132 last partial (SCR-001..005 + SCR-007); SCR-006 18 cases on disk run pending |
 
 ---
 
@@ -94,31 +95,66 @@ Interim top-nav refactor (sessionStorage, **deleted in CP-9.5**) + SCR-006 evide
 | **CP-9.1c** | `GET /v1/intakes` route + 6 integration tests | ✅ `d6f62ee` |
 | **CP-9.1d** | `GET /v1/rca-findings` + 5 tests | ✅ `9d87ee3` |
 | **CP-9.1e** | `GET /v1/repair-plans` + 5 tests | ✅ `b4421c4` |
-| **CP-9.1f** | `GET /v1/approvals` + `GET /v1/evidence-exports` + 10 tests | 🟡 on disk, 10/10 green |
-| **CP-9.2** | `/intakes` list page + 6 Pw cases × 3 browsers | 🔵 next |
-| **CP-9.3** | `/rca`, `/repair-plans`, `/approvals`, `/evidence` pages + 24 Pw | 🔵 |
+| **CP-9.1f** | `GET /v1/approvals` + `GET /v1/evidence-exports` + 10 tests | ✅ `a13aafb` |
+| **CP-9.2** | `/intakes` list page + 6 Pw cases × 3 browsers | 🟡 on disk, 18/18 green |
+| **CP-9.3** | `/rca`, `/repair-plans`, `/approvals`, `/evidence` pages + 24 Pw | 🔵 next |
 | **CP-9.4** | `/dashboard` KPIs + recent activity | 🔵 |
 | **CP-9.5** | replace `NavLinks.tsx` with static list-page links; delete `active-context.ts`; delete per-page stamping calls | 🔵 |
 | **CP-9.6** | final Pw regression (target 222 cases + 90 new = 312) | 🔵 |
 
-### List endpoints (CP-9.1) — ALL 5 SHIPPED
+### List endpoints (CP-9.1) — ALL 5 SHIPPED + PAGES STARTING
 
-| Endpoint | Status | Returns | Filters |
+| Endpoint | API status | UI page status |
+|---|---|---|
+| `GET /v1/intakes` | ✅ `d6f62ee` | 🟡 `/intakes` on disk CP-9.2 (18/18 Pw green) |
+| `GET /v1/rca-findings` | ✅ `9d87ee3` | 🔵 CP-9.3a |
+| `GET /v1/repair-plans` | ✅ `b4421c4` | 🔵 CP-9.3b |
+| `GET /v1/approvals` | ✅ `a13aafb` | 🔵 CP-9.3c |
+| `GET /v1/evidence-exports` | ✅ `a13aafb` | 🔵 CP-9.3d |
+
+### CP-9.2 design notes (what shipped on this disk-iteration)
+
+**Reusable lib** `apps/web/src/lib/list-utils.ts`:
+- `readFiltersFromSearch` / `buildSearch` — URL-query round-trip for filter state so refresh / share-link / browser-back all "just work"
+- `useDebouncedValue(value, 250)` — 250 ms debounce so typing doesn't fire a network call per keystroke
+- `statusBadgeClass` / `riskBadgeClass` / `confidenceBadgeClass` / `booleanBadgeClass` — Tailwind tokens hard-coded (purge-safe) for color-coded badges across all 5 future list pages
+- `formatRelative(iso)` — "5m ago" / "2h ago" / "3d ago" for the When column
+- `DEFAULT_LIMIT=50` / `MAX_LIMIT=200` constants
+
+**`/intakes` page** (SCR-007, `apps/web/src/app/intakes/page.tsx`):
+- Sticky header table with 11 columns: select, when, provider, run, branch, actor, RCA, plan, status, export, open
+- Filter bar with 8 inputs all URL-persisted: q (debounced), provider, plan_status, has_rca, has_plan, has_export, from, to
+- Cursor pagination using stack-based Prev/Next (`cursorStack[]`) so Prev returns to the exact previous page
+- Color-coded plan_status badge (draft=slate, submitted=blue, approved=emerald, rejected=rose); boolean badges for has_rca/has_plan/has_export
+- 5-row loading skeleton on first load AND on every filter change (no flash of empty table)
+- Empty state with "Submit your first intake" CTA → `/`
+- Error state with `Retry` button calling the same `fetchList` callback
+- Selection: per-row checkbox + select-all-on-page checkbox + selection count badge
+- Page-size selector (10 / 25 / 50 / 100)
+- Each row's Open link → `/intake/[id]/rca` deep link (CP-9.5 will refactor)
+
+**18 Playwright cases** (`tests/playwright/scr-007-intakes-list.spec.ts`):
+
+| Browser | Cases | Duration | Status |
 |---|---|---|---|
-| `GET /v1/intakes?…` | ✅ `d6f62ee` | paginated intake_meta + roll-ups (has_rca, has_plan, plan_status, has_export) | has_rca/has_plan/has_export, plan_status, provider, q, from/to |
-| `GET /v1/rca-findings?…` | ✅ `9d87ee3` | paginated RCA + intake context + evidence_count + recommended_actions_count | intake_id, confidence, provider, q on root_cause, from/to |
-| `GET /v1/repair-plans?…` | ✅ `b4421c4` | paginated plan + intake context + step_count + last_approval (action/actor/at) | intake_id, status, overall_risk, est_total_effort, provider, q on summary, from/to |
-| `GET /v1/approvals?…` | 🟡 on disk | paginated approval audit log + plan summary + intake context | repair_plan_id, intake_id, action, actor, from/to |
-| `GET /v1/evidence-exports?…` | 🟡 on disk | paginated export list with sha256 + byte_size + intake context | intake_id, repair_plan_id, from/to |
+| chromium | 6 | 16.0s | ✅ |
+| firefox | 6 | 31.4s | ✅ |
+| webkit | 6 | 31.6s | ✅ |
+| **Total** | **18** | **79s** | **✅** |
+
+Each browser runs the same 6 scenarios:
+- **Pw-009a** — all primary controls render + at least one row after seeding
+- **Pw-009b** — free-text `q` narrows the list to a single matching `run_id` (debounce + URL persistence proven)
+- **Pw-009c** — `plan_status=approved` filter restricts the list to the approved one + colored badge displays
+- **Pw-009d** — cursor pagination `Next` / `Prev` over 3 rows with `limit=2`; no overlap; Prev returns exactly to first page
+- **Pw-009e** — empty state with CTA when filter matches 0 rows
+- **Pw-009f** — row checkboxes + select-all both update the selection count badge; clicking Open navigates to `/intake/[id]/rca`
 
 ### Top nav becomes (CP-9.5)
 ```
 MendoraCI  |  Intakes · RCA · Plans · Approvals · Evidence · Dashboard
 ```
 Each link → list page (always works, no sessionStorage). The sessionStorage helper is **deleted**.
-
-### List-page enterprise affordances (non-negotiable per user feedback)
-Sticky sortable headers, cursor pagination (limit 50 default, max 200), URL-persisted filter bar, color-coded status/risk/confidence badges, empty state with CTA, loading skeleton, error retry, selection checkboxes.
 
 ---
 
@@ -137,16 +173,17 @@ Sticky sortable headers, cursor pagination (limit 50 default, max 200), URL-pers
 | api vitest integration CP-9.1c intakes-list | 6 (TEST-LST-INTAKE-1..6) | ✅ |
 | api vitest integration CP-9.1d rca-list | 5 (TEST-LST-RCA-1..5) | ✅ |
 | api vitest integration CP-9.1e repair-plans-list | 5 (TEST-LST-PLAN-1..5) | ✅ |
-| **api vitest integration CP-9.1f approvals-list** | **5** | **✅ (TEST-LST-APPROVAL-1..5, LST-APPROVAL-4 cross-tenant RLS proof)** |
-| **api vitest integration CP-9.1f evidence-exports-list** | **5** | **✅ (TEST-LST-EVIDENCE-1..5, LST-EVIDENCE-4 cross-tenant RLS proof)** |
+| api vitest integration CP-9.1f approvals-list | 5 (TEST-LST-APPROVAL-1..5) | ✅ |
+| api vitest integration CP-9.1f evidence-exports-list | 5 (TEST-LST-EVIDENCE-1..5) | ✅ |
 | Playwright SCR-001 × 3 | 42 | ✅ |
 | Playwright SCR-002 × 3 | 18 | ✅ |
 | Playwright SCR-003 × 3 | 18 | ✅ |
 | Playwright SCR-004 × 3 | 18 | ✅ |
 | Playwright SCR-005 × 3 | 18 | ✅ |
 | Playwright SCR-006 × 3 | 18 | 🟡 on disk, run pending |
-| **Subtotal** | **231** | **213 green, 18 pending** |
-| CP-9 list-page Pw (planned CP-9.2..9.4) | +90 (6 cases × 5 lists × 3 browsers) | 🔵 |
+| **Playwright SCR-007 × 3 (CP-9.2)** | **18** | **✅ (TEST-Pw-009a..f × chromium/firefox/webkit)** |
+| **Subtotal** | **249** | **231 green, 18 pending** |
+| CP-9 remaining list-page Pw (CP-9.3 = 4 pages × 6 × 3 = 72; CP-9.4 dashboard) | +~72 | 🔵 |
 | **CP-9 target total** | **321** | |
 
 ---
@@ -164,6 +201,6 @@ After every commit:
 2. Append to §4 commit ledger with timestamp
 3. If shipping a deferred-test commit, mark §7 row with 🟡 and add follow-up to §6
 
-Going forward: every `git commit` for this project is followed by an edit to this file in the same shell session. Adopted strictly from `155e918` onward. No idle pause between mini-sprints — proceed straight to the next sub-task without asking.
+Going forward: every `git commit` for this project is followed by an edit to this file in the same shell session. Adopted strictly from `155e918` onward. No idle pause between mini-sprints — proceed straight to the next sub-task without asking. **Update LIVE.md header timestamp + section content BEFORE drafting the commit message — not after.**
 
-**MILESTONE: CP-9.1 (backend list endpoints) complete at this commit. All 5 list endpoints live, 26 list-specific integration tests + 6 cursor unit tests green, RLS proven on each endpoint via dedicated cross-tenant test. CP-9.2 (Next.js `/intakes` list page) starts immediately after this commit.**
+**MILESTONE: CP-9.2 ships the first enterprise list page. UI phase of RT-007 has begun.**
