@@ -5,9 +5,7 @@ import { z } from 'zod';
  *
  * Cursor design: opaque base64-encoded `<ISO-8601 created_at>|<uuid>` so the
  * server can deterministically resume after the last row WITHOUT relying on
- * client-supplied offsets (offsets break under concurrent writes and let a
- * malicious client scan ranges they shouldn't). Cursors are tenant-scoped
- * via RLS automatically; a cursor from tenant A is meaningless to tenant B.
+ * client-supplied offsets. Cursors are tenant-scoped via RLS.
  */
 
 export const PaginationQueryV1 = z
@@ -111,7 +109,7 @@ export const RepairPlansListQueryV1 = PaginationQueryV1.extend({
   overall_risk: z.enum(['low', 'medium', 'high']).optional(),
   est_total_effort: z.enum(['XS', 'S', 'M', 'L', 'XL']).optional(),
   provider: z.string().max(64).optional(),
-  q: z.string().max(200).optional(), // free-text on summary
+  q: z.string().max(200).optional(),
   from: z.string().optional(),
   to: z.string().optional(),
 });
@@ -120,11 +118,9 @@ export type RepairPlansListQuery = z.infer<typeof RepairPlansListQueryV1>;
 export const RepairPlanListRowV1 = z.object({
   repair_plan_id: z.string().uuid(),
   intake_id: z.string().uuid(),
-  // Intake context
   intake_provider: z.string(),
   intake_run_id: z.string(),
   intake_branch: z.string().nullable(),
-  // Plan body
   status: z.enum(['draft', 'submitted', 'approved', 'rejected']),
   summary: z.string(),
   overall_risk: z.enum(['low', 'medium', 'high']),
@@ -133,7 +129,6 @@ export const RepairPlanListRowV1 = z.object({
   provider: z.string(),
   model_id: z.string(),
   bob_latency_ms: z.number().int().nonnegative(),
-  // Last approval (most recent transition) for context column in the list
   last_approval_action: z.enum(['submit', 'approve', 'reject']).nullable(),
   last_approval_actor: z.string().nullable(),
   last_approval_at: z.string().nullable(),
@@ -147,3 +142,77 @@ export const RepairPlansListResponseV1 = z.object({
   total_approx: z.number().int().nonnegative().optional(),
 });
 export type RepairPlansListResponse = z.infer<typeof RepairPlansListResponseV1>;
+
+// =============================================================================
+// APPROVALS list (CP-9.1f)
+// =============================================================================
+
+export const ApprovalsListQueryV1 = PaginationQueryV1.extend({
+  repair_plan_id: z.string().uuid().optional(),
+  intake_id: z.string().uuid().optional(),
+  action: z.enum(['submit', 'approve', 'reject']).optional(),
+  actor: z.string().max(128).optional(),
+  from: z.string().optional(),
+  to: z.string().optional(),
+});
+export type ApprovalsListQuery = z.infer<typeof ApprovalsListQueryV1>;
+
+export const ApprovalListRowV1 = z.object({
+  approval_id: z.string().uuid(),
+  repair_plan_id: z.string().uuid(),
+  intake_id: z.string().uuid(),
+  // Intake + plan context for display
+  intake_provider: z.string(),
+  intake_run_id: z.string(),
+  plan_summary: z.string(),
+  // Audit content
+  action: z.enum(['submit', 'approve', 'reject']),
+  prior_status: z.enum(['draft', 'submitted', 'approved', 'rejected']),
+  new_status: z.enum(['draft', 'submitted', 'approved', 'rejected']),
+  actor: z.string(),
+  note: z.string().nullable(),
+  created_at: z.string(),
+});
+export type ApprovalListRow = z.infer<typeof ApprovalListRowV1>;
+
+export const ApprovalsListResponseV1 = z.object({
+  items: z.array(ApprovalListRowV1),
+  next_cursor: z.string().nullable(),
+  total_approx: z.number().int().nonnegative().optional(),
+});
+export type ApprovalsListResponse = z.infer<typeof ApprovalsListResponseV1>;
+
+// =============================================================================
+// EVIDENCE EXPORTS list (CP-9.1f)
+// =============================================================================
+
+export const EvidenceExportsListQueryV1 = PaginationQueryV1.extend({
+  intake_id: z.string().uuid().optional(),
+  repair_plan_id: z.string().uuid().optional(),
+  from: z.string().optional(),
+  to: z.string().optional(),
+});
+export type EvidenceExportsListQuery = z.infer<typeof EvidenceExportsListQueryV1>;
+
+export const EvidenceExportListRowV1 = z.object({
+  evidence_export_id: z.string().uuid(),
+  intake_id: z.string().uuid(),
+  repair_plan_id: z.string().uuid(),
+  // Intake context for display
+  intake_provider: z.string(),
+  intake_run_id: z.string(),
+  // Export body
+  s3_bucket: z.string(),
+  s3_key: z.string(),
+  sha256: z.string().regex(/^[0-9a-f]{64}$/i),
+  byte_size: z.number().int().nonnegative(),
+  created_at: z.string(),
+});
+export type EvidenceExportListRow = z.infer<typeof EvidenceExportListRowV1>;
+
+export const EvidenceExportsListResponseV1 = z.object({
+  items: z.array(EvidenceExportListRowV1),
+  next_cursor: z.string().nullable(),
+  total_approx: z.number().int().nonnegative().optional(),
+});
+export type EvidenceExportsListResponse = z.infer<typeof EvidenceExportsListResponseV1>;
