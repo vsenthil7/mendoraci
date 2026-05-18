@@ -22,6 +22,7 @@ import { repairPlanRoutes } from './routes/repair-plan.js';
 import { approvalRoutes } from './routes/approval.js';
 import { evidenceExportRoutes } from './routes/evidence-export.js';
 import { intakesListRoutes } from './routes/intakes-list.js';
+import { rcaListRoutes } from './routes/rca-list.js';
 import { healthRoutes } from './routes/health.js';
 import { dbPlugin } from './lib/db.js';
 import { tenantContextPlugin } from './middleware/tenant-context.js';
@@ -71,6 +72,7 @@ export async function buildApp(config: AppConfig = loadConfig()): Promise<Fastif
   await app.register(approvalRoutes, { prefix: '/v1' });
   await app.register(evidenceExportRoutes, { prefix: '/v1' });
   await app.register(intakesListRoutes, { prefix: '/v1' });
+  await app.register(rcaListRoutes, { prefix: '/v1' });
 
   app.setErrorHandler(errorHandler);
 

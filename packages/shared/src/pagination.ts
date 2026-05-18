@@ -71,3 +71,43 @@ export const IntakesListResponseV1 = z.object({
   total_approx: z.number().int().nonnegative().optional(),
 });
 export type IntakesListResponse = z.infer<typeof IntakesListResponseV1>;
+
+// =============================================================================
+// RCA FINDINGS list (CP-9.1d)
+// =============================================================================
+
+export const RcaListQueryV1 = PaginationQueryV1.extend({
+  intake_id: z.string().uuid().optional(),
+  confidence: z.enum(['low', 'medium', 'high']).optional(),
+  provider: z.string().max(64).optional(),
+  q: z.string().max(200).optional(), // free-text on root_cause
+  from: z.string().optional(),
+  to: z.string().optional(),
+});
+export type RcaListQuery = z.infer<typeof RcaListQueryV1>;
+
+export const RcaListRowV1 = z.object({
+  rca_finding_id: z.string().uuid(),
+  intake_id: z.string().uuid(),
+  // Intake context joined for the list view (so user sees what this RCA
+  // is attached to without a separate detail click)
+  intake_provider: z.string(),
+  intake_run_id: z.string(),
+  intake_branch: z.string().nullable(),
+  provider: z.string(), // RCA provider (bob | mock-bob)
+  model_id: z.string(),
+  root_cause: z.string(),
+  confidence: z.enum(['low', 'medium', 'high']),
+  evidence_count: z.number().int().nonnegative(),
+  recommended_actions_count: z.number().int().nonnegative(),
+  bob_latency_ms: z.number().int().nonnegative(),
+  created_at: z.string(),
+});
+export type RcaListRow = z.infer<typeof RcaListRowV1>;
+
+export const RcaListResponseV1 = z.object({
+  items: z.array(RcaListRowV1),
+  next_cursor: z.string().nullable(),
+  total_approx: z.number().int().nonnegative().optional(),
+});
+export type RcaListResponse = z.infer<typeof RcaListResponseV1>;
