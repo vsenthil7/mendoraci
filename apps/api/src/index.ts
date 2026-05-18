@@ -8,6 +8,7 @@
  *   - RT-004 Repair Plan (API-005) — CP-6
  *   - RT-005 Approval Workflow (API-006..008) — CP-7
  *   - RT-006 Evidence Export (API-009) — CP-8
+ *   - CP-9 List endpoints (API-010..014) — Intakes, RCA, Plans, Approvals, Evidence-exports
  *   - RT-008 Mask Policy v1 pre-persist (BR-008, mandatory)
  *   - RT-013 Multi-Tenant Isolation (RLS via SET LOCAL app.tenant_id)
  *   - RT-015 Idempotency & Replay (Idempotency-Key header required on writes)
@@ -20,6 +21,7 @@ import { rcaRoutes } from './routes/rca.js';
 import { repairPlanRoutes } from './routes/repair-plan.js';
 import { approvalRoutes } from './routes/approval.js';
 import { evidenceExportRoutes } from './routes/evidence-export.js';
+import { intakesListRoutes } from './routes/intakes-list.js';
 import { healthRoutes } from './routes/health.js';
 import { dbPlugin } from './lib/db.js';
 import { tenantContextPlugin } from './middleware/tenant-context.js';
@@ -68,6 +70,7 @@ export async function buildApp(config: AppConfig = loadConfig()): Promise<Fastif
   await app.register(repairPlanRoutes, { prefix: '/v1' });
   await app.register(approvalRoutes, { prefix: '/v1' });
   await app.register(evidenceExportRoutes, { prefix: '/v1' });
+  await app.register(intakesListRoutes, { prefix: '/v1' });
 
   app.setErrorHandler(errorHandler);
 
