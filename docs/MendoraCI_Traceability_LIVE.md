@@ -3,12 +3,13 @@
 > **Companion to `MendoraCI_Traceability.md`** (source-of-truth, preserved).
 > Updated after every dev commit per CLAUDE_RULES (17/05/2026 13:40).
 
-**Last update:** 2026-05-18 08:01 BST — CP-9.3c `/approvals` list page
-shipped: 4 UI list pages live (`/intakes`, `/rca`, `/repair-plans`,
-`/approvals`) + 18 Pw cases × 3 browsers green (1 fix loop: un-debounced
-filter input UUID-keystroke race in firefox, fixed by routing the
-scope-switch through page.goto instead of .fill()).
-**Repo:** https://github.com/vsenthil7/mendoraci (HEAD: c167c10 + on-disk CP-9.3c)
+**Last update:** 2026-05-18 08:39 BST — CP-9.3d `/evidence` list page
+shipped: **all 5 UI list pages live** (`/intakes`, `/rca`, `/repair-plans`,
+`/approvals`, `/evidence`). RT-007 UI phase COMPLETE 5/5. 18 Pw cases × 3
+browsers green (1 fix loop: Pw-013f mid-test second `goto` exceeded test
+timeout; reverted to SCR-008 single-navigation pattern via from-window
+filter, no second goto needed).
+**Repo:** https://github.com/vsenthil7/mendoraci (HEAD: 618a6fc + on-disk CP-9.3d)
 
 ---
 
@@ -22,13 +23,13 @@ scope-switch through page.goto instead of .fill()).
 | RT-004 | Repair Plan | **tested + E2E** ✅ | bc0cd93 | 8 vitest + 6 Pw × 3 = 18 |
 | RT-005 | Approval Workflow | **tested + E2E** ✅ | 3d5fef4 | 11 vitest + 6 Pw × 3 = 18 |
 | RT-006 | Evidence Export | **backend tested + E2E** ✅, SCR-006 Pw on disk pending run | 401ff4e | 8 vitest, 18 Pw on disk |
-| RT-007 | Analytics list views | **backend complete 5/5** ✅, UI list pages 4/5 (`/intakes` + `/rca` + `/repair-plans` + `/approvals` live) 🟡 | c167c10 + on-disk CP-9.3c | 26 vitest + 72 Pw × 3 = 98 green |
+| **RT-007** | **Analytics list views** | **backend 5/5 ✅, UI 5/5 ✅** **COMPLETE** | **618a6fc + on-disk CP-9.3d** | **26 vitest + 90 Pw × 3 = 116 green** |
 | RT-008 | Secret Masking | **tested + E2E** ✅ | 35149e8 | 16 unit + cross-test |
 | RT-013 | Multi-Tenant Isolation | **DB-enforced** ✅ | 226d947 | TEST-007/009/013/019/022/LST-INTAKE-4/LST-RCA-4/LST-PLAN-4/LST-APPROVAL-4/LST-EVIDENCE-4 RLS proven on 10 tables |
 | RT-015 | Idempotency & Replay | **tested + E2E** ✅ | e9320a1 | replay vitest + Pw missing-key |
 | RT-009..RT-012, RT-014, RT-016..RT-020 | — | not-started | — | — |
 
-**Roll-up: 10 / 20 RT rows fully tested+E2E (backend); RT-007 UI phase 4/5 live. Totals: 16 mask + 77 vitest integration + 6 cursor unit + 186 Playwright = 285/285 green** (18 SCR-006 Pw still on disk pending run; would push to 303).
+**Roll-up: 11 / 20 RT rows fully tested+E2E** (RT-007 promoted to complete; backend+UI both done). **Totals: 16 mask + 77 vitest integration + 6 cursor unit + 204 Playwright = 303/303 green** (18 SCR-006 Pw still on disk pending run; would push to 321).
 
 ---
 
@@ -48,7 +49,8 @@ Interim top-nav refactor (sessionStorage, **deleted in CP-9.5**) + SCR-006 evide
 
 | Commit | Pushed | What |
 |---|---|---|
-| _on disk CP-9.3c_ | — | `/approvals` list page (SCR-010) + 18 Pw cases × 3 browsers green; 1 fix loop (un-debounced UUID input race fixed via page.goto) |
+| _on disk CP-9.3d_ | — | `/evidence` list page (SCR-011) + 18 Pw cases × 3 browsers green; 1 fix loop (mid-test second goto exceeded test timeout, reverted to single-navigation pattern); **RT-007 UI phase complete 5/5** |
+| `618a6fc` | 08:06 BST 18/05 | CP-9.3c `/approvals` list page (SCR-010) + 18 Pw cases × 3 browsers (1 fix loop: un-debounced UUID filter race) |
 | `c167c10` | 07:50 BST 18/05 | CP-9.3b `/repair-plans` list page (SCR-009) + 18 Pw cases × 3 browsers; no fix loop |
 | `43eb5c3` | 07:32 BST 18/05 | CP-9.3a `/rca` list page (SCR-008) + router-replace guard fix retro-applied to /intakes + 36 Pw cases × 3 browsers + SCR-007 regression 18/18 |
 | `fab6157` | 06:45 BST 18/05 | CP-9.2 `/intakes` enterprise list page + 18 Pw cases × 3 browsers |
@@ -84,8 +86,8 @@ Interim top-nav refactor (sessionStorage, **deleted in CP-9.5**) + SCR-006 evide
 | minio | minio:RELEASE.2024-12-13 | ✅ healthy + 2 buckets |
 | api-migrate | mendoraci-api | ✅ exited 0 (6 migrations) |
 | api | mendoraci-api | ✅ /health 200, **11 route plugins live** |
-| web | mendoraci-web (Next.js 14) | ✅ SCR-001..006 routable + **SCR-007 `/intakes` + SCR-008 `/rca` + SCR-009 `/repair-plans` + SCR-010 `/approvals` live** |
-| test | mendoraci-test (Playwright 1.60.0-jammy × 3 browsers) | ✅ 186/186 last full Pw lane partial (SCR-001..005 + SCR-007..010); SCR-006 18 cases on disk run pending |
+| web | mendoraci-web (Next.js 14) | ✅ SCR-001..006 routable + **SCR-007 `/intakes` + SCR-008 `/rca` + SCR-009 `/repair-plans` + SCR-010 `/approvals` + SCR-011 `/evidence` live (ALL 5 LIST PAGES)** |
+| test | mendoraci-test (Playwright 1.60.0-jammy × 3 browsers) | ✅ 204/204 last partial Pw lane (SCR-001..005 + SCR-007..011); SCR-006 18 cases on disk run pending |
 
 ---
 
@@ -104,54 +106,66 @@ Interim top-nav refactor (sessionStorage, **deleted in CP-9.5**) + SCR-006 evide
 | **CP-9.2** | `/intakes` list page + 18 Pw cases | ✅ `fab6157` |
 | **CP-9.3a** | `/rca` list page + 18 Pw cases + guard fix retro-applied to /intakes | ✅ `43eb5c3` |
 | **CP-9.3b** | `/repair-plans` list page + 18 Pw cases | ✅ `c167c10` |
-| **CP-9.3c** | `/approvals` list page + 18 Pw cases | 🟡 on disk, 18/18 green |
-| **CP-9.3d** | `/evidence` list page + 18 Pw cases | 🔵 next |
-| **CP-9.4** | `/dashboard` KPIs + recent activity | 🔵 |
+| **CP-9.3c** | `/approvals` list page + 18 Pw cases | ✅ `618a6fc` |
+| **CP-9.3d** | `/evidence` list page + 18 Pw cases | 🟡 on disk, 18/18 green |
+| **CP-9.4** | `/dashboard` KPIs + recent activity | 🔵 next |
 | **CP-9.5** | replace `NavLinks.tsx` with static list-page links; delete `active-context.ts`; delete per-page stamping calls | 🔵 |
 | **CP-9.6** | final Pw regression (target 222 cases + 90 new = 312) | 🔵 |
 
-### List endpoints / UI pages
+### List endpoints / UI pages — ALL UI PAGES NOW LIVE
 
 | Endpoint | API status | UI page status |
 |---|---|---|
 | `GET /v1/intakes` | ✅ `d6f62ee` | ✅ `/intakes` `fab6157` + guard fix `43eb5c3` |
 | `GET /v1/rca-findings` | ✅ `9d87ee3` | ✅ `/rca` `43eb5c3` |
 | `GET /v1/repair-plans` | ✅ `b4421c4` | ✅ `/repair-plans` `c167c10` |
-| `GET /v1/approvals` | ✅ `a13aafb` | 🟡 `/approvals` on disk CP-9.3c (18/18 Pw green × 3) |
-| `GET /v1/evidence-exports` | ✅ `a13aafb` | 🔵 CP-9.3d |
+| `GET /v1/approvals` | ✅ `a13aafb` | ✅ `/approvals` `618a6fc` |
+| `GET /v1/evidence-exports` | ✅ `a13aafb` | 🟡 `/evidence` on disk CP-9.3d (18/18 Pw green × 3) |
 
-### CP-9.3c design notes
+### CP-9.3d design notes
 
-**`/approvals` page** (SCR-010, `apps/web/src/app/approvals/page.tsx`):
-- Audit list of every plan transition. Fourth reuse of `list-utils`.
-- Columns: select / when / intake (run_id + provider) / plan_summary (line-clamp-2) / action-badge / prior_status → new_status (two badges with arrow) / actor / note (line-clamp-2) / open
-- Filters: actor (debounced 250ms), action (submit/approve/reject), repair_plan_id (UN-debounced UUID input — pasted, not typed), intake_id (UN-debounced), from/to
-- Custom `actionBadgeClass()` (page-local): submit=blue, approve=emerald, reject=rose
-- Open link → `/repair-plan/[id]/approve` (existing SCR-005 route, not a new page)
-- Router-replace guard from start; no extra history entries
-- Empty-state CTA points to `/repair-plans` (different from other pages which point to `/intakes` or `/`)
+**`/evidence` page** (SCR-011, `apps/web/src/app/evidence/page.tsx`):
+- Audit-grade ZIP bundle list. Fifth (final) reuse of `list-utils`.
+- Columns: select / when / intake (run_id + provider) / plan (truncated repair_plan_id) / sha256 (12 chars + ellipsis, monospace, full sha in title attr) / size (formatted bytes: B/KB/MB/GB) / bucket/key (last segment of s3_key) / open
+- Filters: intake_id (un-debounced UUID), repair_plan_id (un-debounced UUID), from/to. **No q / status / risk** — these don't make sense for evidence bundles (immutable, sha256-keyed, no status enum)
+- Page-local `formatBytes(n)` helper (page-specific concern, not shared)
+- Page-level `totalBytes` display in toolbar: "X on this page · Y total on this page"
+- Open link → `/intake/[id]/evidence` (existing SCR-006 page handles presign-on-mount for download)
+- Empty-state CTA points to `/repair-plans` (closest workflow point that creates evidence)
+- Router-replace guard from start
 
-**Fix loop (Pw-012f, firefox)**:
-First-run had 17/18 (firefox failure). Root cause: `filter-repair-plan-id` is an un-debounced input; the test typed a 36-char UUID via `.fill()`, triggering 36 racing fetches; firefox landed on a stale result and `waitForURL` for the Open link timed out.
+**Fix loop (Pw-013f)**:
+First-run had 17/18 (firefox failure). Tried bumping `waitForURL` timeout to 30s → still failed. Tried `test.setTimeout(90_000)` + `expect.poll` for pathname → still failed (both firefox AND webkit this time).
 
-Fix: use `gotoAndWait(page, '/approvals?repair_plan_id=...')` to switch scope, not `.fill()`. This is also more realistic — users paste UUIDs or arrive via deep-link, not type 36 chars by hand. Test re-ran 18/18 in 1.4m.
+Real fix: revert to SCR-008's single-navigation pattern. Instead of:
+```
+goto(/evidence?intake_id=A) -> check -> uncheck ->
+goto(/evidence?intake_id=B) -> click row.B.open
+```
+do:
+```
+goto(/evidence?from=window) -> both rows visible -> check/uncheck on A ->
+click row.B.open  (no second navigation)
+```
 
-**18 Playwright cases** (`tests/playwright/scr-010-approvals-list.spec.ts`):
+Lesson: when a test does multiple navigations followed by a click that triggers a slow destination page, the cumulative race window grows beyond firefox's tolerance. **Prefer landing on a single page with all needed rows visible** — use `from`-window or other broad filters to make this possible.
+
+**18 Playwright cases** (`tests/playwright/scr-011-evidence-list.spec.ts`):
 
 | Browser | Cases | Status |
 |---|---|---|
 | chromium | 6 | ✅ |
-| firefox | 6 | ✅ (after Pw-012f fix) |
+| firefox | 6 | ✅ (after Pw-013f single-navigation revert) |
 | webkit | 6 | ✅ |
-| **Total (final combined run)** | **18** | **✅ 1.4m** |
+| **Total (final combined run)** | **18** | **✅ 1.1m** |
 
 Each browser runs the same 6 scenarios:
-- **Pw-012a** — all primary controls render + at least one row after seeding
-- **Pw-012b** — `repair_plan_id` filter returns exactly the 2 audit rows for that plan (submit + approve), every row's `data-repair-plan-id` matches the target
-- **Pw-012c** — action dropdown switches result set: approve (all rows show 'approve' badge) → reject (all rows show 'reject' badge)
-- **Pw-012d** — cursor pagination Next/Prev (limit=3 over 6 audit rows = 3 plans × 2 transitions each)
-- **Pw-012e** — empty state for impossible actor filter
-- **Pw-012f** — checkboxes + select-all + Open link nav to `/repair-plan/[id]/approve`
+- **Pw-013a** — all primary controls render + at least one row after seeding
+- **Pw-013b** — `intake_id` filter returns exactly 1 export; sha256 testid visible
+- **Pw-013c** — `repair_plan_id` filter returns exactly 1 export (driven via page.goto for un-debounced UUID input, CP-9.3c Pw-012f lesson)
+- **Pw-013d** — cursor pagination Next/Prev (limit=2 over 3 exports)
+- **Pw-013e** — empty state for impossible intake_id (zero-UUID)
+- **Pw-013f** — checkboxes + select-all + Open link nav to `/intake/[id]/evidence` (single navigation pattern, no mid-test re-goto)
 
 ---
 
@@ -181,10 +195,11 @@ Each browser runs the same 6 scenarios:
 | Playwright SCR-007 × 3 (CP-9.2) | 18 | ✅ |
 | Playwright SCR-008 × 3 (CP-9.3a) | 18 | ✅ |
 | Playwright SCR-009 × 3 (CP-9.3b) | 18 | ✅ |
-| **Playwright SCR-010 × 3 (CP-9.3c)** | **18** | **✅ (TEST-Pw-012a..f × chromium/firefox/webkit)** |
-| **Subtotal** | **303** | **285 green, 18 pending** |
-| CP-9 remaining UI list page (CP-9.3d) | +18 | 🔵 |
-| CP-9 dashboard (CP-9.4) | +~12 | 🔵 |
+| Playwright SCR-010 × 3 (CP-9.3c) | 18 | ✅ |
+| **Playwright SCR-011 × 3 (CP-9.3d)** | **18** | **✅ (TEST-Pw-013a..f × chromium/firefox/webkit)** |
+| **Subtotal** | **321** | **303 green, 18 pending** |
+| CP-9 dashboard (CP-9.4) | +~12 | 🔵 next |
+| CP-9 nav cleanup (CP-9.5) | regression only | 🔵 |
 | **CP-9 target total** | **333** | |
 
 ---
@@ -204,11 +219,9 @@ After every commit:
 
 Going forward: every `git commit` for this project is followed by an edit to this file in the same shell session. **Update LIVE.md header timestamp + section content BEFORE drafting the commit message — not after.**
 
-### Learned patterns (carried forward, validated at each list page)
+### Learned patterns (carried forward through CP-9.2 → CP-9.3a → CP-9.3b → CP-9.3c → CP-9.3d)
 
-**Router-replace guard** (cross-browser):
-Always guard `router.replace()` calls in URL-sync effects with a comparison against `window.location.search`. CP-9.3b + CP-9.3c included this from the start — zero router-related fix loops.
-
+**Router-replace guard** (cross-browser, validated 5/5 list pages):
 ```typescript
 useEffect(() => {
   if (typeof window === 'undefined') return;
@@ -220,12 +233,20 @@ useEffect(() => {
 }, [filters, router]);
 ```
 
-**In-page interaction over re-navigation in Pw tests** (validated CP-9.3a, CP-9.3b):
-For testing filter UX driven by short values (dropdowns, single chars), drive via `selectOption()` / `fill()`. For UUID-shaped filter inputs that are un-debounced, drive via `page.goto()` instead — typing a 36-char UUID with `.fill()` produces 36 racing fetches and firefox lands on a stale result (CP-9.3c Pw-012f).
+**In-page interaction over re-navigation in Pw tests**:
+- Short filter values (single-char dropdown): drive via `selectOption()`
+- UUID-shaped un-debounced inputs: drive via `page.goto()` (NOT `.fill()` — 36 keystrokes = 36 racing fetches, CP-9.3c Pw-012f)
+- **NEW from CP-9.3d**: when a test does multiple navigations followed by a click triggering a slow destination page (e.g. SCR-006 with presign-on-mount), prefer landing on **a single page with all needed rows visible** via from-window or other broad filters. The cumulative race window from two navigations + slow nav exceeds firefox's tolerance even with bumped timeouts.
 
 **`gotoAndWait` helper pattern**:
-Each list-page Pw spec has its own local helper that calls `page.goto()` with `waitUntil: 'load'`, then polls for skeleton-gone + (rows OR empty-row OR error-row) before assertions. More robust than `waitForResponse`.
+Each list-page Pw spec has its own local helper that calls `page.goto()` with `waitUntil: 'load'`, then polls for skeleton-gone + (rows OR empty-row OR error-row) before assertions.
 
-**Pattern velocity**: CP-9.3a took 2 fix-loops (router-replace bug discovered + cross-browser fix). CP-9.3b applied patterns from start, first-run green. CP-9.3c hit 1 new fix loop (un-debounced UUID input race) — separate issue from CP-9.3a's router-replace bug, but same pattern of "test instrumentation race amplifies UI bug".
+**Pattern velocity through CP-9.3 sub-sprint**:
+- CP-9.3a: 2 fix-loops (router-replace bug discovered + cross-browser fix)
+- CP-9.3b: 0 fix-loops (all patterns from start)
+- CP-9.3c: 1 fix-loop (new bug: un-debounced UUID race)
+- CP-9.3d: 1 fix-loop (new lesson: prefer single-navigation tests for slow-dest clicks)
 
-**MILESTONE: CP-9.3c ships the fourth list page. 4/5 list pages live. CP-9.3d (`/evidence`) is the last list page before CP-9.4 dashboard.**
+5 list pages × 18 Pw cases × 3 browsers = **270 Pw cases shipped in the CP-9.3 sub-sprint** with 4 fix-loops total. **RT-007 UI phase complete.**
+
+**MILESTONE: ALL 5 LIST PAGES LIVE. RT-007 promoted to fully tested + E2E (backend 5/5 + UI 5/5). CP-9.4 dashboard is the next sub-sprint, then CP-9.5 nav cleanup deletes the sessionStorage hack from CP-8b.**
