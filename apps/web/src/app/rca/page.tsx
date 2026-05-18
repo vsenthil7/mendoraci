@@ -6,79 +6,72 @@ import {
   DEFAULT_LIMIT,
   MAX_LIMIT,
   buildSearch,
-  statusBadgeClass,
-  booleanBadgeClass,
+  confidenceBadgeClass,
   formatRelative,
   useDebouncedValue,
 } from '../../lib/list-utils';
 
 /**
- * SCR-007 — Intakes list page (CP-9.2 + CP-9.3a guard fix).
+ * SCR-008 — RCA findings list page (CP-9.3a).
  *
  * Anchors:
- *   - CP-9 enterprise list views
- *   - API-010 GET /v1/intakes (CP-9.1c)
+ *   - CP-9 enterprise list views (UI phase of RT-007)
+ *   - API-011 GET /v1/rca-findings (CP-9.1d)
  *
- * Behaviour contract (covered by tests/playwright/scr-007-intakes-list.spec.ts):
- *   - Sticky sortable header table
- *   - Cursor pagination (Next page / Prev via filter persistence)
- *   - URL-persisted filters: q, provider, plan_status, has_rca, has_plan,
- *     has_export, from, to, limit
- *   - 250 ms debounce on free-text search
- *   - Color-coded plan_status badge
- *   - Boolean badges for has_rca / has_plan / has_export
- *   - Selection checkboxes (per-row + select-all; visible count badge)
- *   - Empty state with CTA to /
- *   - Loading skeleton on first load and on filter change
- *   - Error state with retry button
- *   - Each row click → /intake/[id]/rca deep link
+ * Tests: tests/playwright/scr-008-rca-list.spec.ts
  *
- * NOTE on URL sync (CP-9.3a fix carried back from /rca page): the URL sync
- * effect must only call router.replace() when the resulting URL actually
- * differs from window.location.search. Otherwise the initial-load
- * normalisation (e.g. adding "&limit=50" to a URL that didn't have it)
- * creates an unwanted history entry and, in webkit, causes the next
- * page.goto() in Playwright to report "navigation interrupted by another
- * navigation".
+ * Mirror of /intakes (SCR-007) but listing RCA findings with:
+ *   - Intake context columns (provider, run_id, branch)
+ *   - Confidence color-coded badge (low/medium/high)
+ *   - Evidence + recommended-action counts
+ *   - bob_latency_ms inline (perf hint for ops)
+ * Filters: q (on root_cause), confidence, intake_id, provider, from/to
+ *
+ * NOTE on URL sync (firefox + webkit fix discovered in CP-9.3a Pw-010c on
+ * webkit): the previous version called router.replace() unconditionally
+ * on every filter change. When loaded with `/rca?confidence=high` and the
+ * default-limit normalisation kicked in, that replaced the URL to
+ * `/rca?confidence=high&limit=50` immediately after page load. In Playwright
+ * webkit, this gets reported as "Navigation to A is interrupted by another
+ * navigation to A&limit=50". Real users would also see an extra browser
+ * history entry. Fix: only call router.replace() when the resulting URL
+ * actually differs from window.location's current search.
  */
 
 type Row = {
+  rca_finding_id: string;
   intake_id: string;
+  intake_provider: string;
+  intake_run_id: string;
+  intake_branch: string | null;
   provider: string;
-  run_id: string;
-  attempt_id: string;
-  branch: string | null;
-  commit_sha: string | null;
-  actor: string | null;
-  mask_policy_version: string;
+  model_id: string;
+  root_cause: string;
+  confidence: 'low' | 'medium' | 'high';
+  evidence_count: number;
+  recommended_actions_count: number;
+  bob_latency_ms: number;
   created_at: string;
-  has_rca: boolean;
-  has_plan: boolean;
-  plan_status: 'draft' | 'submitted' | 'approved' | 'rejected' | null;
-  has_export: boolean;
 };
 
 type ListResp = { items: Row[]; next_cursor: string | null };
 
-const PLAN_STATUSES = ['draft', 'submitted', 'approved', 'rejected'] as const;
-const TRI_STATES = ['', 'true', 'false'] as const;
+const CONFIDENCES = ['low', 'medium', 'high'] as const;
 
-export default function IntakesListPage() {
+export default function RcaListPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const sp = useSearchParams();
 
   // --- Filter state mirrors URL ---
-  const [q, setQ] = useState(searchParams.get('q') ?? '');
-  const debouncedQ = useDebouncedValue(q, 250);
-  const [provider, setProvider] = useState(searchParams.get('provider') ?? '');
-  const [planStatus, setPlanStatus] = useState(searchParams.get('plan_status') ?? '');
-  const [hasRca, setHasRca] = useState(searchParams.get('has_rca') ?? '');
-  const [hasPlan, setHasPlan] = useState(searchParams.get('has_plan') ?? '');
-  const [hasExport, setHasExport] = useState(searchParams.get('has_export') ?? '');
-  const [from, setFrom] = useState(searchParams.get('from') ?? '');
-  const [to, setTo] = useState(searchParams.get('to') ?? '');
-  const [limit, setLimit] = useState<number>(Number(searchParams.get('limit') ?? DEFAULT_LIMIT));
-  const [cursor, setCursor] = useState<string | null>(searchParams.get('cursor'));
+  const [q, setQ] = useState(sp.get('q') ?? '');
+  const dq = useDebouncedValue(q, 250);
+  const [confidence, setConfidence] = useState(sp.get('confidence') ?? '');
+  const [intakeId, setIntakeId] = useState(sp.get('intake_id') ?? '');
+  const [provider, setProvider] = useState(sp.get('provider') ?? '');
+  const [from, setFrom] = useState(sp.get('from') ?? '');
+  const [to, setTo] = useState(sp.get('to') ?? '');
+  const [limit, setLimit] = useState<number>(Number(sp.get('limit') ?? DEFAULT_LIMIT));
+  const [cursor, setCursor] = useState<string | null>(sp.get('cursor'));
   const [cursorStack, setCursorStack] = useState<(string | null)[]>([]);
 
   // --- Data state ---
@@ -88,51 +81,49 @@ export default function IntakesListPage() {
   const [error, setError] = useState<string>('');
   const [selection, setSelection] = useState<Set<string>>(new Set());
 
-  // --- Build filter map (used both for the URL and the API call) ---
   const filters = useMemo(
     () => ({
-      q: debouncedQ,
+      q: dq,
+      confidence,
+      intake_id: intakeId,
       provider,
-      plan_status: planStatus,
-      has_rca: hasRca,
-      has_plan: hasPlan,
-      has_export: hasExport,
       from,
       to,
       limit: String(limit),
       ...(cursor ? { cursor } : {}),
     }),
-    [debouncedQ, provider, planStatus, hasRca, hasPlan, hasExport, from, to, limit, cursor],
+    [dq, confidence, intakeId, provider, from, to, limit, cursor],
   );
 
-  // --- Push filter state into the URL ONLY when it actually differs ---
+  // Only push to history if the URL actually changes; this prevents an extra
+  // history entry on first mount (e.g. when the URL has no `limit=` and we
+  // would otherwise add `&limit=50`) and also prevents Playwright webkit from
+  // reporting a "navigation interrupted by another navigation" because of the
+  // initial-load normalisation.
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const nextSearch = buildSearch(filters);
     const currentSearch = window.location.search;
     if (nextSearch !== currentSearch) {
-      router.replace(`/intakes${nextSearch}`, { scroll: false });
+      router.replace(`/rca${nextSearch}`, { scroll: false });
     }
   }, [filters, router]);
 
-  // --- Fetch on filter change ---
   const fetchList = useCallback(async () => {
     setLoading(true);
     setError('');
     setSelection(new Set());
     try {
-      const sp = new URLSearchParams();
-      if (debouncedQ) sp.set('q', debouncedQ);
-      if (provider) sp.set('provider', provider);
-      if (planStatus) sp.set('plan_status', planStatus);
-      if (hasRca) sp.set('has_rca', hasRca);
-      if (hasPlan) sp.set('has_plan', hasPlan);
-      if (hasExport) sp.set('has_export', hasExport);
-      if (from) sp.set('from', from);
-      if (to) sp.set('to', to);
-      sp.set('limit', String(Math.min(MAX_LIMIT, Math.max(1, limit))));
-      if (cursor) sp.set('cursor', cursor);
-      const r = await fetch(`/api/v1/intakes?${sp.toString()}`, {
+      const qs = new URLSearchParams();
+      if (dq) qs.set('q', dq);
+      if (confidence) qs.set('confidence', confidence);
+      if (intakeId) qs.set('intake_id', intakeId);
+      if (provider) qs.set('provider', provider);
+      if (from) qs.set('from', from);
+      if (to) qs.set('to', to);
+      qs.set('limit', String(Math.min(MAX_LIMIT, Math.max(1, limit))));
+      if (cursor) qs.set('cursor', cursor);
+      const r = await fetch(`/api/v1/rca-findings?${qs.toString()}`, {
         headers: { 'x-tenant-id': DEMO_TENANT_ID },
       });
       if (!r.ok) {
@@ -152,14 +143,13 @@ export default function IntakesListPage() {
     } finally {
       setLoading(false);
     }
-  }, [debouncedQ, provider, planStatus, hasRca, hasPlan, hasExport, from, to, limit, cursor]);
+  }, [dq, confidence, intakeId, provider, from, to, limit, cursor]);
 
   useEffect(() => {
     void fetchList();
   }, [fetchList]);
 
-  // --- Reset cursor when filters (not cursor itself) change ---
-  const filterFingerprint = `${debouncedQ}|${provider}|${planStatus}|${hasRca}|${hasPlan}|${hasExport}|${from}|${to}|${limit}`;
+  const filterFingerprint = `${dq}|${confidence}|${intakeId}|${provider}|${from}|${to}|${limit}`;
   useEffect(() => {
     setCursor(null);
     setCursorStack([]);
@@ -178,10 +168,10 @@ export default function IntakesListPage() {
     setCursor(prev);
   };
 
-  const allSelected = rows.length > 0 && rows.every((r) => selection.has(r.intake_id));
+  const allSelected = rows.length > 0 && rows.every((r) => selection.has(r.rca_finding_id));
   const toggleAll = () => {
     if (allSelected) setSelection(new Set());
-    else setSelection(new Set(rows.map((r) => r.intake_id)));
+    else setSelection(new Set(rows.map((r) => r.rca_finding_id)));
   };
   const toggleRow = (id: string) =>
     setSelection((s) => {
@@ -192,37 +182,54 @@ export default function IntakesListPage() {
     });
 
   return (
-    <section data-testid="scr-007-intakes-list">
+    <section data-testid="scr-008-rca-list">
       <div className="mb-4 flex items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Intakes</h1>
+          <h1 className="text-2xl font-semibold text-slate-900">RCA findings</h1>
           <p className="text-sm text-slate-600">
-            CI failure artefacts ingested into MendoraCI. Filter, paginate, drill down.
+            AI-generated root-cause analyses for ingested CI failures. Filter and drill into intake.
           </p>
         </div>
         <a
-          data-testid="cta-new-intake"
-          href="/"
-          className="rounded bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-700"
+          data-testid="link-back-intakes"
+          href="/intakes"
+          className="rounded border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
         >
-          + New intake
+          ← Intakes
         </a>
       </div>
 
+      {/* FILTER BAR */}
       <div
         data-testid="filter-bar"
         className="mb-3 grid grid-cols-1 gap-3 rounded-lg border border-slate-200 bg-white p-3 sm:grid-cols-2 md:grid-cols-4"
       >
         <label className="text-xs font-medium text-slate-700">
-          Search (run_id / branch / actor)
+          Search root cause
           <input
             data-testid="filter-q"
             type="text"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="search…"
+            placeholder="e.g. OOM…"
             className="mt-1 block w-full rounded border-slate-300 px-2 py-1 text-sm font-normal"
           />
+        </label>
+        <label className="text-xs font-medium text-slate-700">
+          Confidence
+          <select
+            data-testid="filter-confidence"
+            value={confidence}
+            onChange={(e) => setConfidence(e.target.value)}
+            className="mt-1 block w-full rounded border-slate-300 px-2 py-1 text-sm font-normal"
+          >
+            <option value="">(any)</option>
+            {CONFIDENCES.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
         </label>
         <label className="text-xs font-medium text-slate-700">
           Provider
@@ -231,73 +238,23 @@ export default function IntakesListPage() {
             type="text"
             value={provider}
             onChange={(e) => setProvider(e.target.value)}
-            placeholder="github / jenkins / …"
+            placeholder="bob / mock-bob"
             className="mt-1 block w-full rounded border-slate-300 px-2 py-1 text-sm font-normal"
           />
         </label>
         <label className="text-xs font-medium text-slate-700">
-          Plan status
-          <select
-            data-testid="filter-plan-status"
-            value={planStatus}
-            onChange={(e) => setPlanStatus(e.target.value)}
+          Intake ID
+          <input
+            data-testid="filter-intake-id"
+            type="text"
+            value={intakeId}
+            onChange={(e) => setIntakeId(e.target.value)}
+            placeholder="uuid"
             className="mt-1 block w-full rounded border-slate-300 px-2 py-1 text-sm font-normal"
-          >
-            <option value="">(any)</option>
-            {PLAN_STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
+          />
         </label>
         <label className="text-xs font-medium text-slate-700">
-          Has RCA
-          <select
-            data-testid="filter-has-rca"
-            value={hasRca}
-            onChange={(e) => setHasRca(e.target.value)}
-            className="mt-1 block w-full rounded border-slate-300 px-2 py-1 text-sm font-normal"
-          >
-            {TRI_STATES.map((s) => (
-              <option key={s || 'any'} value={s}>
-                {s || '(any)'}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-xs font-medium text-slate-700">
-          Has plan
-          <select
-            data-testid="filter-has-plan"
-            value={hasPlan}
-            onChange={(e) => setHasPlan(e.target.value)}
-            className="mt-1 block w-full rounded border-slate-300 px-2 py-1 text-sm font-normal"
-          >
-            {TRI_STATES.map((s) => (
-              <option key={s || 'any'} value={s}>
-                {s || '(any)'}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-xs font-medium text-slate-700">
-          Has export
-          <select
-            data-testid="filter-has-export"
-            value={hasExport}
-            onChange={(e) => setHasExport(e.target.value)}
-            className="mt-1 block w-full rounded border-slate-300 px-2 py-1 text-sm font-normal"
-          >
-            {TRI_STATES.map((s) => (
-              <option key={s || 'any'} value={s}>
-                {s || '(any)'}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-xs font-medium text-slate-700">
-          From (ISO)
+          From
           <input
             data-testid="filter-from"
             type="datetime-local"
@@ -307,7 +264,7 @@ export default function IntakesListPage() {
           />
         </label>
         <label className="text-xs font-medium text-slate-700">
-          To (ISO)
+          To
           <input
             data-testid="filter-to"
             type="datetime-local"
@@ -318,6 +275,7 @@ export default function IntakesListPage() {
         </label>
       </div>
 
+      {/* TOOLBAR */}
       <div className="mb-2 flex items-center justify-between text-sm">
         <div className="flex items-center gap-3">
           <span data-testid="row-count" className="text-slate-600">
@@ -366,6 +324,7 @@ export default function IntakesListPage() {
         </div>
       </div>
 
+      {/* TABLE */}
       <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
         <table className="min-w-full text-sm">
           <thead className="sticky top-0 bg-slate-50 text-xs uppercase tracking-wider text-slate-600">
@@ -380,14 +339,13 @@ export default function IntakesListPage() {
                 />
               </th>
               <th className="px-3 py-2 text-left">When</th>
-              <th className="px-3 py-2 text-left">Provider</th>
-              <th className="px-3 py-2 text-left">Run</th>
-              <th className="px-3 py-2 text-left">Branch</th>
-              <th className="px-3 py-2 text-left">Actor</th>
-              <th className="px-3 py-2 text-left">RCA</th>
-              <th className="px-3 py-2 text-left">Plan</th>
-              <th className="px-3 py-2 text-left">Status</th>
-              <th className="px-3 py-2 text-left">Export</th>
+              <th className="px-3 py-2 text-left">Intake</th>
+              <th className="px-3 py-2 text-left">Model</th>
+              <th className="px-3 py-2 text-left">Confidence</th>
+              <th className="px-3 py-2 text-left">Root cause</th>
+              <th className="px-3 py-2 text-right">Evidence</th>
+              <th className="px-3 py-2 text-right">Actions</th>
+              <th className="px-3 py-2 text-right">Bob ms</th>
               <th className="px-3 py-2 text-right">Open</th>
             </tr>
           </thead>
@@ -395,7 +353,7 @@ export default function IntakesListPage() {
             {loading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <tr key={`sk-${i}`} data-testid={`row-skeleton-${i}`} className="border-t border-slate-100">
-                  {Array.from({ length: 11 }).map((__, j) => (
+                  {Array.from({ length: 10 }).map((__, j) => (
                     <td key={j} className="px-3 py-2">
                       <div className="h-3 w-full max-w-[120px] animate-pulse rounded bg-slate-100" />
                     </td>
@@ -404,7 +362,7 @@ export default function IntakesListPage() {
               ))
             ) : error ? (
               <tr data-testid="error-row">
-                <td colSpan={11} className="px-3 py-6 text-center text-sm text-rose-700">
+                <td colSpan={10} className="px-3 py-6 text-center text-sm text-rose-700">
                   <div>{error}</div>
                   <button
                     data-testid="retry-button"
@@ -417,18 +375,18 @@ export default function IntakesListPage() {
               </tr>
             ) : rows.length === 0 ? (
               <tr data-testid="empty-row">
-                <td colSpan={11} className="px-3 py-10 text-center text-sm text-slate-500">
+                <td colSpan={10} className="px-3 py-10 text-center text-sm text-slate-500">
                   <div className="mx-auto max-w-md">
-                    <div className="mb-2 text-base font-medium text-slate-700">No intakes yet</div>
+                    <div className="mb-2 text-base font-medium text-slate-700">No RCA findings yet</div>
                     <div className="mb-4">
-                      Drop your first CI failure log to see it analysed end-to-end.
+                      RCAs are generated from intakes. Submit an intake and trigger a root-cause run.
                     </div>
                     <a
                       data-testid="empty-cta"
-                      href="/"
+                      href="/intakes"
                       className="inline-block rounded bg-slate-900 px-3 py-1.5 text-xs font-medium text-white"
                     >
-                      Submit your first intake
+                      Go to Intakes
                     </a>
                   </div>
                 </td>
@@ -436,63 +394,54 @@ export default function IntakesListPage() {
             ) : (
               rows.map((row) => (
                 <tr
-                  key={row.intake_id}
-                  data-testid={`intake-row-${row.intake_id}`}
+                  key={row.rca_finding_id}
+                  data-testid={`rca-row-${row.rca_finding_id}`}
+                  data-rca-finding-id={row.rca_finding_id}
                   data-intake-id={row.intake_id}
                   className="border-t border-slate-100 hover:bg-slate-50"
                 >
                   <td className="px-3 py-2">
                     <input
-                      data-testid={`row-checkbox-${row.intake_id}`}
+                      data-testid={`row-checkbox-${row.rca_finding_id}`}
                       type="checkbox"
-                      checked={selection.has(row.intake_id)}
-                      onChange={() => toggleRow(row.intake_id)}
-                      aria-label={`Select intake ${row.intake_id}`}
+                      checked={selection.has(row.rca_finding_id)}
+                      onChange={() => toggleRow(row.rca_finding_id)}
+                      aria-label={`Select RCA ${row.rca_finding_id}`}
                     />
                   </td>
                   <td className="px-3 py-2 text-slate-700">
                     <span title={row.created_at}>{formatRelative(row.created_at)}</span>
                   </td>
-                  <td className="px-3 py-2 text-slate-700">{row.provider}</td>
-                  <td className="px-3 py-2 font-mono text-xs text-slate-900">{row.run_id}</td>
-                  <td className="px-3 py-2 text-slate-700">{row.branch ?? '—'}</td>
-                  <td className="px-3 py-2 text-slate-700">{row.actor ?? '—'}</td>
-                  <td className="px-3 py-2">
-                    <span
-                      className={`inline-flex items-center rounded px-1.5 py-0.5 text-xs ${booleanBadgeClass(row.has_rca)}`}
-                    >
-                      {row.has_rca ? 'yes' : 'no'}
-                    </span>
+                  <td className="px-3 py-2 text-xs text-slate-700">
+                    <div className="font-mono">{row.intake_run_id}</div>
+                    <div className="text-slate-400">
+                      {row.intake_provider}
+                      {row.intake_branch ? ` · ${row.intake_branch}` : ''}
+                    </div>
+                  </td>
+                  <td className="px-3 py-2 text-slate-700">
+                    <div>{row.model_id}</div>
+                    <div className="text-xs text-slate-400">{row.provider}</div>
                   </td>
                   <td className="px-3 py-2">
                     <span
-                      className={`inline-flex items-center rounded px-1.5 py-0.5 text-xs ${booleanBadgeClass(row.has_plan)}`}
+                      data-testid={`confidence-${row.rca_finding_id}`}
+                      className={`inline-flex items-center rounded px-1.5 py-0.5 text-xs ${confidenceBadgeClass(row.confidence)}`}
                     >
-                      {row.has_plan ? 'yes' : 'no'}
+                      {row.confidence}
                     </span>
                   </td>
-                  <td className="px-3 py-2">
-                    {row.plan_status ? (
-                      <span
-                        data-testid={`plan-status-${row.intake_id}`}
-                        className={`inline-flex items-center rounded px-1.5 py-0.5 text-xs ${statusBadgeClass(row.plan_status)}`}
-                      >
-                        {row.plan_status}
-                      </span>
-                    ) : (
-                      <span className="text-xs text-slate-400">—</span>
-                    )}
+                  <td className="max-w-md px-3 py-2 text-slate-700">
+                    <div className="line-clamp-2" title={row.root_cause}>
+                      {row.root_cause}
+                    </div>
                   </td>
-                  <td className="px-3 py-2">
-                    <span
-                      className={`inline-flex items-center rounded px-1.5 py-0.5 text-xs ${booleanBadgeClass(row.has_export)}`}
-                    >
-                      {row.has_export ? 'yes' : 'no'}
-                    </span>
-                  </td>
+                  <td className="px-3 py-2 text-right tabular-nums text-slate-700">{row.evidence_count}</td>
+                  <td className="px-3 py-2 text-right tabular-nums text-slate-700">{row.recommended_actions_count}</td>
+                  <td className="px-3 py-2 text-right tabular-nums text-slate-500">{row.bob_latency_ms}</td>
                   <td className="px-3 py-2 text-right">
                     <a
-                      data-testid={`row-open-${row.intake_id}`}
+                      data-testid={`row-open-${row.rca_finding_id}`}
                       href={`/intake/${row.intake_id}/rca`}
                       className="text-xs font-medium text-blue-700 hover:text-blue-900 hover:underline"
                     >

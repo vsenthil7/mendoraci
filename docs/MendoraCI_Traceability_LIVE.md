@@ -3,10 +3,11 @@
 > **Companion to `MendoraCI_Traceability.md`** (source-of-truth, preserved).
 > Updated after every dev commit per CLAUDE_RULES (17/05/2026 13:40).
 
-**Last update:** 2026-05-18 06:40 BST — CP-9.2 `/intakes` list page shipped:
-shared list-utils lib + enterprise-grade Next.js list page + 18 Playwright
-cases green across chromium + firefox + webkit. First UI list page live.
-**Repo:** https://github.com/vsenthil7/mendoraci (HEAD: a13aafb + on-disk CP-9.2)
+**Last update:** 2026-05-18 07:24 BST — CP-9.3a `/rca` list page shipped:
+2 UI list pages live (`/intakes`, `/rca`) + cross-browser router-replace
+guard fix retro-applied to /intakes + 36 Pw cases green across 3 browsers
+(no regression on SCR-007).
+**Repo:** https://github.com/vsenthil7/mendoraci (HEAD: fab6157 + on-disk CP-9.3a)
 
 ---
 
@@ -20,13 +21,13 @@ cases green across chromium + firefox + webkit. First UI list page live.
 | RT-004 | Repair Plan | **tested + E2E** ✅ | bc0cd93 | 8 vitest + 6 Pw × 3 = 18 |
 | RT-005 | Approval Workflow | **tested + E2E** ✅ | 3d5fef4 | 11 vitest + 6 Pw × 3 = 18 |
 | RT-006 | Evidence Export | **backend tested + E2E** ✅, SCR-006 Pw on disk pending run | 401ff4e | 8 vitest, 18 Pw on disk |
-| RT-007 | Analytics list views | **backend complete 5/5** ✅, UI list pages 1/5 (`/intakes` live) 🟡 | a13aafb + on-disk CP-9.2 | 26 vitest + 18 Pw × 3 = 44 green |
+| RT-007 | Analytics list views | **backend complete 5/5** ✅, UI list pages 2/5 (`/intakes` + `/rca` live) 🟡 | fab6157 + on-disk CP-9.3a | 26 vitest + 36 Pw × 3 = 62 green |
 | RT-008 | Secret Masking | **tested + E2E** ✅ | 35149e8 | 16 unit + cross-test |
 | RT-013 | Multi-Tenant Isolation | **DB-enforced** ✅ | 226d947 | TEST-007/009/013/019/022/LST-INTAKE-4/LST-RCA-4/LST-PLAN-4/LST-APPROVAL-4/LST-EVIDENCE-4 RLS proven on 10 tables |
 | RT-015 | Idempotency & Replay | **tested + E2E** ✅ | e9320a1 | replay vitest + Pw missing-key |
 | RT-009..RT-012, RT-014, RT-016..RT-020 | — | not-started | — | — |
 
-**Roll-up: 10 / 20 RT rows fully tested+E2E (backend); RT-007 UI phase 1/5 underway. Totals: 16 mask + 77 vitest integration + 6 cursor unit + 132 Playwright = 231/231 green** (18 SCR-006 Pw still on disk pending run; would push to 249).
+**Roll-up: 10 / 20 RT rows fully tested+E2E (backend); RT-007 UI phase 2/5 live. Totals: 16 mask + 77 vitest integration + 6 cursor unit + 150 Playwright = 249/249 green** (18 SCR-006 Pw still on disk pending run; would push to 267).
 
 ---
 
@@ -46,7 +47,8 @@ Interim top-nav refactor (sessionStorage, **deleted in CP-9.5**) + SCR-006 evide
 
 | Commit | Pushed | What |
 |---|---|---|
-| _on disk CP-9.2_ | — | `/intakes` list page (SCR-007) + shared list-utils + 18 Pw cases green across chromium+firefox+webkit |
+| _on disk CP-9.3a_ | — | `/rca` list page (SCR-008) + router-replace guard fix retro-applied to /intakes + 18 Pw cases × 3 browsers green + SCR-007 18/18 regression green |
+| `fab6157` | 06:45 BST 18/05 | CP-9.2 `/intakes` enterprise list page + 18 Pw cases × 3 browsers |
 | `a13aafb` | 06:00 BST 18/05 | CP-9.1f `GET /v1/approvals` + `GET /v1/evidence-exports` + 10 integration tests green; RT-007 backend phase complete (5/5) |
 | `b4421c4` | 05:34 BST 18/05 | CP-9.1e `GET /v1/repair-plans` + 5 tests green (no fix loop) |
 | `9d87ee3` | 05:25 BST 18/05 | CP-9.1d `GET /v1/rca-findings` + 5 tests green (jsonb_array_length fix loop) |
@@ -78,9 +80,9 @@ Interim top-nav refactor (sessionStorage, **deleted in CP-9.5**) + SCR-006 evide
 | redis | redis:7-alpine | ✅ healthy |
 | minio | minio:RELEASE.2024-12-13 | ✅ healthy + 2 buckets |
 | api-migrate | mendoraci-api | ✅ exited 0 (6 migrations) |
-| api | mendoraci-api | ✅ /health 200, **11 route plugins live** (intake, repo-link, rca, repair-plan, approval, evidence-export, intakes-list, rca-list, repair-plans-list, approvals-list, evidence-exports-list) |
-| web | mendoraci-web (Next.js 14) | ✅ SCR-001..006 routable + **SCR-007 `/intakes` live (CP-9.2)** |
-| test | mendoraci-test (Playwright 1.60.0-jammy × 3 browsers) | ✅ 132/132 last partial (SCR-001..005 + SCR-007); SCR-006 18 cases on disk run pending |
+| api | mendoraci-api | ✅ /health 200, **11 route plugins live** |
+| web | mendoraci-web (Next.js 14) | ✅ SCR-001..006 routable + **SCR-007 `/intakes` live (CP-9.2)** + **SCR-008 `/rca` live (CP-9.3a)** |
+| test | mendoraci-test (Playwright 1.60.0-jammy × 3 browsers) | ✅ 150/150 last full Pw lane partial (SCR-001..005 + SCR-007 + SCR-008); SCR-006 18 cases on disk run pending |
 
 ---
 
@@ -90,71 +92,71 @@ Interim top-nav refactor (sessionStorage, **deleted in CP-9.5**) + SCR-006 evide
 
 | Sub-task | Scope | Status |
 |---|---|---|
-| **CP-9.1a** | shared `PaginationQueryV1` + `IntakesListQueryV1` + `IntakeListRowV1` schemas | ✅ `155e918` |
-| **CP-9.1b** | `apps/api/src/lib/cursor.ts` encode/decode + 6 unit tests | ✅ `76c13c8` |
-| **CP-9.1c** | `GET /v1/intakes` route + 6 integration tests | ✅ `d6f62ee` |
+| **CP-9.1a** | shared schemas | ✅ `155e918` |
+| **CP-9.1b** | cursor lib + 6 unit tests | ✅ `76c13c8` |
+| **CP-9.1c** | `GET /v1/intakes` + 6 tests | ✅ `d6f62ee` |
 | **CP-9.1d** | `GET /v1/rca-findings` + 5 tests | ✅ `9d87ee3` |
 | **CP-9.1e** | `GET /v1/repair-plans` + 5 tests | ✅ `b4421c4` |
 | **CP-9.1f** | `GET /v1/approvals` + `GET /v1/evidence-exports` + 10 tests | ✅ `a13aafb` |
-| **CP-9.2** | `/intakes` list page + 6 Pw cases × 3 browsers | 🟡 on disk, 18/18 green |
-| **CP-9.3** | `/rca`, `/repair-plans`, `/approvals`, `/evidence` pages + 24 Pw | 🔵 next |
+| **CP-9.2** | `/intakes` list page + 18 Pw cases | ✅ `fab6157` |
+| **CP-9.3a** | `/rca` list page + 18 Pw cases + guard fix retro-applied to /intakes | 🟡 on disk, 36/36 green |
+| **CP-9.3b** | `/repair-plans` list page + 18 Pw cases | 🔵 next |
+| **CP-9.3c** | `/approvals` list page + 18 Pw cases | 🔵 |
+| **CP-9.3d** | `/evidence` list page + 18 Pw cases | 🔵 |
 | **CP-9.4** | `/dashboard` KPIs + recent activity | 🔵 |
 | **CP-9.5** | replace `NavLinks.tsx` with static list-page links; delete `active-context.ts`; delete per-page stamping calls | 🔵 |
 | **CP-9.6** | final Pw regression (target 222 cases + 90 new = 312) | 🔵 |
 
-### List endpoints (CP-9.1) — ALL 5 SHIPPED + PAGES STARTING
+### List endpoints / UI pages
 
 | Endpoint | API status | UI page status |
 |---|---|---|
-| `GET /v1/intakes` | ✅ `d6f62ee` | 🟡 `/intakes` on disk CP-9.2 (18/18 Pw green) |
-| `GET /v1/rca-findings` | ✅ `9d87ee3` | 🔵 CP-9.3a |
+| `GET /v1/intakes` | ✅ `d6f62ee` | ✅ `/intakes` `fab6157` (with CP-9.3a guard fix on disk) |
+| `GET /v1/rca-findings` | ✅ `9d87ee3` | 🟡 `/rca` on disk CP-9.3a (18/18 Pw green × 3) |
 | `GET /v1/repair-plans` | ✅ `b4421c4` | 🔵 CP-9.3b |
 | `GET /v1/approvals` | ✅ `a13aafb` | 🔵 CP-9.3c |
 | `GET /v1/evidence-exports` | ✅ `a13aafb` | 🔵 CP-9.3d |
 
-### CP-9.2 design notes (what shipped on this disk-iteration)
+### CP-9.3a design notes (what shipped on this disk-iteration)
 
-**Reusable lib** `apps/web/src/lib/list-utils.ts`:
-- `readFiltersFromSearch` / `buildSearch` — URL-query round-trip for filter state so refresh / share-link / browser-back all "just work"
-- `useDebouncedValue(value, 250)` — 250 ms debounce so typing doesn't fire a network call per keystroke
-- `statusBadgeClass` / `riskBadgeClass` / `confidenceBadgeClass` / `booleanBadgeClass` — Tailwind tokens hard-coded (purge-safe) for color-coded badges across all 5 future list pages
-- `formatRelative(iso)` — "5m ago" / "2h ago" / "3d ago" for the When column
-- `DEFAULT_LIMIT=50` / `MAX_LIMIT=200` constants
+**`/rca` page** (SCR-008, `apps/web/src/app/rca/page.tsx`):
+- Mirror of SCR-007 with RCA-specific columns: when / intake (run_id + provider + branch) / model (model_id + provider) / confidence-badge / root_cause (line-clamp-2) / evidence-count / actions-count / bob-ms / open
+- Reuses shared `list-utils` library (no duplication; lib was specifically built for this in CP-9.2)
+- Filters: q (root_cause ILIKE), confidence (low/medium/high), provider (bob/mock-bob), intake_id (uuid), from/to (ISO)
+- Cursor pagination, selection checkboxes, empty/loading/error states, page-size selector
+- Color-coded confidence badge using shared `confidenceBadgeClass`
+- "← Intakes" link at top-right for cross-page nav
 
-**`/intakes` page** (SCR-007, `apps/web/src/app/intakes/page.tsx`):
-- Sticky header table with 11 columns: select, when, provider, run, branch, actor, RCA, plan, status, export, open
-- Filter bar with 8 inputs all URL-persisted: q (debounced), provider, plan_status, has_rca, has_plan, has_export, from, to
-- Cursor pagination using stack-based Prev/Next (`cursorStack[]`) so Prev returns to the exact previous page
-- Color-coded plan_status badge (draft=slate, submitted=blue, approved=emerald, rejected=rose); boolean badges for has_rca/has_plan/has_export
-- 5-row loading skeleton on first load AND on every filter change (no flash of empty table)
-- Empty state with "Submit your first intake" CTA → `/`
-- Error state with `Retry` button calling the same `fetchList` callback
-- Selection: per-row checkbox + select-all-on-page checkbox + selection count badge
-- Page-size selector (10 / 25 / 50 / 100)
-- Each row's Open link → `/intake/[id]/rca` deep link (CP-9.5 will refactor)
+**ROUTER-REPLACE GUARD FIX** (applied to both `/intakes` and `/rca`):
+- Bug: previous version called `router.replace(...)` unconditionally on every filter change. On first mount with a partial URL (e.g. `/rca?confidence=high`), the default-limit normalisation would replace to `/rca?confidence=high&limit=50` immediately.
+- Two real-user impacts: (1) extra browser history entry on every page-load (back button takes user to the *same* page they just opened); (2) in webkit/Playwright this manifests as "Navigation to A is interrupted by another navigation to A&limit=50"
+- Fix: guard `router.replace()` so it only fires when `buildSearch(filters) !== window.location.search`
+- Applied to `apps/web/src/app/intakes/page.tsx` (CP-9.2) and `apps/web/src/app/rca/page.tsx` (CP-9.3a)
+- SCR-007 18/18 regression confirms no behavioural change on /intakes
 
-**18 Playwright cases** (`tests/playwright/scr-007-intakes-list.spec.ts`):
+**Test fix lesson** (TEST-Pw-010c):
+- Original: two `page.goto('/rca?confidence=high')` then `page.goto('/rca?confidence=low')` — flaked on firefox + webkit due to in-flight request races
+- Fixed by: drive the confidence dropdown via `selectOption(...)` instead of a second goto. Mimics real-user behaviour and avoids the cross-browser navigation race entirely.
+- General rule: prefer in-page interaction to repeated page.goto() when validating filter UX
+
+**18 Playwright cases** (`tests/playwright/scr-008-rca-list.spec.ts`):
 
 | Browser | Cases | Duration | Status |
 |---|---|---|---|
 | chromium | 6 | 16.0s | ✅ |
-| firefox | 6 | 31.4s | ✅ |
-| webkit | 6 | 31.6s | ✅ |
-| **Total** | **18** | **79s** | **✅** |
+| firefox | 6 | 26.0s | ✅ (after dropdown-interaction fix) |
+| webkit | 6 | 28.9s | ✅ (after router-replace guard fix) |
+| **Total** | **18** | **~71s** | **✅** |
 
 Each browser runs the same 6 scenarios:
-- **Pw-009a** — all primary controls render + at least one row after seeding
-- **Pw-009b** — free-text `q` narrows the list to a single matching `run_id` (debounce + URL persistence proven)
-- **Pw-009c** — `plan_status=approved` filter restricts the list to the approved one + colored badge displays
-- **Pw-009d** — cursor pagination `Next` / `Prev` over 3 rows with `limit=2`; no overlap; Prev returns exactly to first page
-- **Pw-009e** — empty state with CTA when filter matches 0 rows
-- **Pw-009f** — row checkboxes + select-all both update the selection count badge; clicking Open navigates to `/intake/[id]/rca`
+- **Pw-010a** — all primary controls render + at least one RCA row after seeding
+- **Pw-010b** — `intake_id` filter returns exactly the target RCA
+- **Pw-010c** — confidence dropdown switches result set (high → low → empty) — uses in-page dropdown to avoid firefox NS_BINDING_ABORTED race
+- **Pw-010d** — cursor pagination Next/Prev (limit=2 over 3 RCAs, no overlap, Prev returns to first page exactly)
+- **Pw-010e** — empty state for impossible q filter
+- **Pw-010f** — row checkbox + select-all + Open link nav to `/intake/[id]/rca`
 
-### Top nav becomes (CP-9.5)
-```
-MendoraCI  |  Intakes · RCA · Plans · Approvals · Evidence · Dashboard
-```
-Each link → list page (always works, no sessionStorage). The sessionStorage helper is **deleted**.
+**SCR-007 18/18 regression confirmation:** after applying the same router-replace guard to `/intakes`, SCR-007's 18 cases ran clean (1.1m).
 
 ---
 
@@ -181,14 +183,16 @@ Each link → list page (always works, no sessionStorage). The sessionStorage he
 | Playwright SCR-004 × 3 | 18 | ✅ |
 | Playwright SCR-005 × 3 | 18 | ✅ |
 | Playwright SCR-006 × 3 | 18 | 🟡 on disk, run pending |
-| **Playwright SCR-007 × 3 (CP-9.2)** | **18** | **✅ (TEST-Pw-009a..f × chromium/firefox/webkit)** |
-| **Subtotal** | **249** | **231 green, 18 pending** |
-| CP-9 remaining list-page Pw (CP-9.3 = 4 pages × 6 × 3 = 72; CP-9.4 dashboard) | +~72 | 🔵 |
-| **CP-9 target total** | **321** | |
+| Playwright SCR-007 × 3 (CP-9.2) | 18 | ✅ (regression-tested with CP-9.3a guard fix) |
+| **Playwright SCR-008 × 3 (CP-9.3a)** | **18** | **✅ (TEST-Pw-010a..f × chromium/firefox/webkit)** |
+| **Subtotal** | **267** | **249 green, 18 pending** |
+| CP-9 remaining UI list pages (CP-9.3b/c/d) | +54 (3 pages × 6 × 3) | 🔵 |
+| CP-9 dashboard (CP-9.4) | +~12 | 🔵 |
+| **CP-9 target total** | **333** | |
 
 ---
 
-## 8. Update cadence — going forward
+## 8. Update cadence + learned patterns
 
 Per CLAUDE_RULES: **this file MUST be updated immediately after every dev commit, before the next mini-sprint starts.** Mini-sprint cycle is strict:
 
@@ -201,6 +205,28 @@ After every commit:
 2. Append to §4 commit ledger with timestamp
 3. If shipping a deferred-test commit, mark §7 row with 🟡 and add follow-up to §6
 
-Going forward: every `git commit` for this project is followed by an edit to this file in the same shell session. Adopted strictly from `155e918` onward. No idle pause between mini-sprints — proceed straight to the next sub-task without asking. **Update LIVE.md header timestamp + section content BEFORE drafting the commit message — not after.**
+Going forward: every `git commit` for this project is followed by an edit to this file in the same shell session. **Update LIVE.md header timestamp + section content BEFORE drafting the commit message — not after.**
 
-**MILESTONE: CP-9.2 ships the first enterprise list page. UI phase of RT-007 has begun.**
+### Learned patterns from CP-9.3a
+
+**Router-replace guard** (cross-browser):
+Always guard `router.replace()` calls in URL-sync effects with a comparison against `window.location.search`. Without the guard, default-value normalisation triggers an extra history entry on every page load and causes webkit/firefox to abort in-flight requests when tests navigate twice in quick succession.
+
+```typescript
+useEffect(() => {
+  if (typeof window === 'undefined') return;
+  const nextSearch = buildSearch(filters);
+  const currentSearch = window.location.search;
+  if (nextSearch !== currentSearch) {
+    router.replace(`/path${nextSearch}`, { scroll: false });
+  }
+}, [filters, router]);
+```
+
+**In-page interaction over re-navigation in Pw tests**:
+When a test verifies filter UX, prefer driving the dropdown / input directly (`selectOption`, `fill`) over two consecutive `page.goto()` calls. This both mimics real-user behaviour AND avoids cross-browser in-flight request races (`NS_BINDING_ABORTED` on firefox, "navigation interrupted" on webkit).
+
+**`gotoAndWait` helper pattern**:
+Each list-page Pw spec includes a local helper that calls `page.goto()` with `waitUntil: 'load'`, then polls until the skeleton is gone AND either rows / empty-row / error-row is present. This is more robust than `waitForResponse` because it doesn't care which intermediate XHRs fire — it cares about the rendered terminal state.
+
+**MILESTONE: CP-9.3a ships the second list page. 2/5 list pages live (`/intakes`, `/rca`).**
