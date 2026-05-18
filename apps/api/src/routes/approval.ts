@@ -20,7 +20,8 @@
  *   POST /v1/repair-plan/:id/reject
  *   GET  /v1/repair-plan/:id/approvals    (audit log + current_status)
  */
-import type { FastifyPluginAsync } from 'fastify';
+import type { FastifyInstance, FastifyPluginAsync, FastifyReply } from 'fastify';
+import type pg from 'pg';
 import {
   SubmitRequestV1,
   ApproveRequestV1,
@@ -29,11 +30,18 @@ import {
   ApprovalLogV1,
   type ApprovalAction,
   type ApprovalStatus,
+  type ApprovalTransitionResponse,
 } from '@mendoraci/shared';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-function err(reply: any, status: number, code: string, message: string, extra?: object) {
+function err(
+  reply: FastifyReply,
+  status: number,
+  code: string,
+  message: string,
+  extra?: object,
+) {
   return reply
     .code(status)
     .type('application/json')
@@ -41,7 +49,7 @@ function err(reply: any, status: number, code: string, message: string, extra?: 
 }
 
 function err422Zod(
-  reply: any,
+  reply: FastifyReply,
   issues: ReadonlyArray<{ path: (string | number)[]; message: string }>,
 ) {
   return reply.code(422).type('application/json').send({
@@ -74,12 +82,17 @@ function lookupNext(prior: ApprovalStatus, action: ApprovalAction): ApprovalStat
   return TRANSITIONS.find((t) => t.prior === prior && t.action === action)?.next ?? null;
 }
 
+type TransitionResult =
+  | { kind: 'ok'; envelope: ApprovalTransitionResponse }
+  | { kind: 'not_found' }
+  | { kind: 'invalid_transition'; prior: ApprovalStatus };
+
 /**
  * Perform a state transition inside a tenant tx. Returns the response envelope
  * or a typed error indicator the route layer maps to HTTP.
  */
 async function performTransition(
-  app: any,
+  app: FastifyInstance,
   args: {
     tenantId: string;
     repairPlanId: string;
@@ -88,12 +101,8 @@ async function performTransition(
     note: string | null;
     stepDecisions: unknown[];
   },
-): Promise<
-  | { kind: 'ok'; envelope: any }
-  | { kind: 'not_found' }
-  | { kind: 'invalid_transition'; prior: ApprovalStatus }
-> {
-  return app.withTenant(args.tenantId, async (client: any) => {
+): Promise<TransitionResult> {
+  return app.withTenant(args.tenantId, async (client: pg.PoolClient) => {
     // 1. Read current status under RLS.
     const cur = await client.query<{
       repair_plan_id: string;
