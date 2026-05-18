@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { DEMO_TENANT_ID } from '../../../../lib/client';
+import { setActiveIntakeId } from '../../../../lib/active-context';
 
 /**
  * SCR-003 — Root-Cause Analysis page.
@@ -11,6 +12,9 @@ import { DEMO_TENANT_ID } from '../../../../lib/client';
  * the structured RCA finding (root cause, confidence, evidence, recommended
  * actions). Surfaces 404 intake_not_found, 412 mask_preview_unavailable,
  * 503 bob_unavailable, 504 bob_timeout from the API.
+ *
+ * CP-8b: stamps the route-supplied intake_id into sessionStorage so the
+ * top-level NavLinks Plan/Evidence buttons can deep-link from a fresh tab.
  */
 
 type RcaStatus = 'idle' | 'submitting' | 'done' | 'error';
@@ -36,6 +40,8 @@ export default function RcaPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const intakeId = params?.id ?? '';
+
+  if (intakeId) setActiveIntakeId(intakeId);
 
   const [chatMode, setChatMode] = useState<'plan' | 'code' | 'advanced' | 'ask'>('ask');
   const [status, setStatus] = useState<RcaStatus>('idle');
@@ -116,65 +122,77 @@ export default function RcaPage() {
       </div>
 
       {rca ? (
-        <div data-testid="rca-result" className="mt-4 space-y-4 rounded border border-slate-200 bg-white p-6">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <>
+          <div className="mt-2 text-sm">
+            <a
+              data-testid="link-to-plan-from-rca"
+              href={`/intake/${intakeId}/repair-plan`}
+              className="text-blue-700 underline hover:text-blue-900"
+            >
+              Generate repair plan (SCR-004) →
+            </a>
+          </div>
+
+          <div data-testid="rca-result" className="mt-4 space-y-4 rounded border border-slate-200 bg-white p-6">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <div className="text-xs uppercase tracking-wide text-slate-500">Provider</div>
+                <div
+                  data-testid="rca-provider"
+                  className="font-mono text-sm text-slate-900"
+                >
+                  {rca.provider} ({rca.model_id})
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-xs uppercase tracking-wide text-slate-500">Latency</div>
+                <div data-testid="rca-latency" className="font-mono text-sm text-slate-900">
+                  {rca.bob_latency_ms} ms
+                </div>
+              </div>
+            </div>
+
             <div>
-              <div className="text-xs uppercase tracking-wide text-slate-500">Provider</div>
-              <div
-                data-testid="rca-provider"
-                className="font-mono text-sm text-slate-900"
-              >
-                {rca.provider} ({rca.model_id})
+              <div className="text-xs uppercase tracking-wide text-slate-500">Root cause</div>
+              <div data-testid="rca-root-cause" className="text-base text-slate-900">
+                {rca.output.root_cause}
               </div>
             </div>
-            <div className="text-right">
-              <div className="text-xs uppercase tracking-wide text-slate-500">Latency</div>
-              <div data-testid="rca-latency" className="font-mono text-sm text-slate-900">
-                {rca.bob_latency_ms} ms
+
+            <div>
+              <div className="text-xs uppercase tracking-wide text-slate-500">Confidence</div>
+              <div data-testid="rca-confidence" className="font-mono text-sm text-slate-900">
+                {rca.output.confidence}
               </div>
             </div>
-          </div>
 
-          <div>
-            <div className="text-xs uppercase tracking-wide text-slate-500">Root cause</div>
-            <div data-testid="rca-root-cause" className="text-base text-slate-900">
-              {rca.output.root_cause}
+            <div>
+              <div className="mb-1 text-xs uppercase tracking-wide text-slate-500">
+                Evidence ({rca.output.evidence_snippets.length})
+              </div>
+              <ul data-testid="rca-evidence" className="list-disc space-y-1 pl-5 text-sm">
+                {rca.output.evidence_snippets.map((s, i) => (
+                  <li key={i} data-testid={`rca-evidence-${i}`} className="font-mono text-slate-700">
+                    {s}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <div className="mb-1 text-xs uppercase tracking-wide text-slate-500">
+                Recommended actions ({rca.output.recommended_actions.length})
+              </div>
+              <ol data-testid="rca-actions" className="list-decimal space-y-1 pl-5 text-sm">
+                {rca.output.recommended_actions.map((a, i) => (
+                  <li key={i} data-testid={`rca-action-${i}`} className="text-slate-700">
+                    {a}
+                  </li>
+                ))}
+              </ol>
             </div>
           </div>
-
-          <div>
-            <div className="text-xs uppercase tracking-wide text-slate-500">Confidence</div>
-            <div data-testid="rca-confidence" className="font-mono text-sm text-slate-900">
-              {rca.output.confidence}
-            </div>
-          </div>
-
-          <div>
-            <div className="mb-1 text-xs uppercase tracking-wide text-slate-500">
-              Evidence ({rca.output.evidence_snippets.length})
-            </div>
-            <ul data-testid="rca-evidence" className="list-disc space-y-1 pl-5 text-sm">
-              {rca.output.evidence_snippets.map((s, i) => (
-                <li key={i} data-testid={`rca-evidence-${i}`} className="font-mono text-slate-700">
-                  {s}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <div className="mb-1 text-xs uppercase tracking-wide text-slate-500">
-              Recommended actions ({rca.output.recommended_actions.length})
-            </div>
-            <ol data-testid="rca-actions" className="list-decimal space-y-1 pl-5 text-sm">
-              {rca.output.recommended_actions.map((a, i) => (
-                <li key={i} data-testid={`rca-action-${i}`} className="text-slate-700">
-                  {a}
-                </li>
-              ))}
-            </ol>
-          </div>
-        </div>
+        </>
       ) : null}
 
       {error ? (

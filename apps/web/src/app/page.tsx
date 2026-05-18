@@ -1,11 +1,16 @@
 'use client';
 import { useState } from 'react';
 import { randomIdempotencyKey, DEMO_TENANT_ID } from '../lib/client';
+import { setActiveIntakeId } from '../lib/active-context';
 
 /**
  * SCR-001 — CI Log Intake (Phase 1 minimal).
  * Anchors: RT-001 (BR-001), RT-008 mask preview, RT-015 idempotency-key client-side.
- * Full three-pane wireframe (intake history table, detail drawer) is CP-3+.
+ *
+ * On a successful intake creation we stamp the new intake_id into
+ * sessionStorage via setActiveIntakeId() so the top-level NavLinks can
+ * route the user into RCA / Plan / Approve / Evidence without re-clicking
+ * through the per-page deep links.
  */
 export default function IntakePage() {
   const [status, setStatus] = useState<string>('idle');
@@ -42,7 +47,10 @@ export default function IntakePage() {
       const j = await r.json();
       setResponse(j);
       setStatus(r.ok ? 'submitted' : 'error');
-      if (r.ok && j.intake_id) setIntakeId(j.intake_id);
+      if (r.ok && j.intake_id) {
+        setIntakeId(j.intake_id);
+        setActiveIntakeId(j.intake_id); // stamps top-nav
+      }
       if (!r.ok) setError(JSON.stringify(j));
     } catch (e) {
       setStatus('error');
@@ -80,7 +88,7 @@ export default function IntakePage() {
       </div>
 
       {intakeId ? (
-        <div className="mt-2 space-x-4 text-sm">
+        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
           <a
             data-testid="link-to-repo-form"
             href={`/intake/${intakeId}/repo`}
@@ -101,6 +109,13 @@ export default function IntakePage() {
             className="text-blue-700 underline hover:text-blue-900"
           >
             Repair plan (SCR-004) →
+          </a>
+          <a
+            data-testid="link-to-evidence-form"
+            href={`/intake/${intakeId}/evidence`}
+            className="text-blue-700 underline hover:text-blue-900"
+          >
+            Evidence (SCR-006) →
           </a>
         </div>
       ) : null}
