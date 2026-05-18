@@ -3,10 +3,9 @@
 > **Companion to `MendoraCI_Traceability.md`** (source-of-truth, preserved).
 > Updated after every dev commit per CLAUDE_RULES (17/05/2026 13:40).
 
-**Last update:** 2026-05-18 04:38 BST — CP-8b shipped as commit `401ff4e`;
-CP-9.1a (shared pagination contract + IntakesListQuery schemas) is on disk
-about to ship.
-**Repo:** https://github.com/vsenthil7/mendoraci (HEAD: 401ff4e)
+**Last update:** 2026-05-18 04:47 BST — CP-9.1b cursor helper shipped (155e918
+was CP-9.1a; this commit will be the second of the CP-9.1 sequence).
+**Repo:** https://github.com/vsenthil7/mendoraci (HEAD: 155e918 + on-disk CP-9.1b)
 
 ---
 
@@ -25,7 +24,7 @@ about to ship.
 | RT-015 | Idempotency & Replay | **tested + E2E** ✅ | e9320a1 | replay vitest + Pw missing-key |
 | RT-007, RT-009..RT-012, RT-014, RT-016..RT-020 | — | not-started | — | — |
 
-**Roll-up: 9 / 20 RT rows tested+E2E (backend). Total: 16 mask + 51 vitest integration + 114 Playwright = 181/181 green** (Pw SCR-006 18 cases on disk; will push Pw to 132 / 199 once next full run completes).
+**Roll-up: 9 / 20 RT rows tested+E2E (backend). Total: 16 mask + 51 vitest integration + 6 cursor unit + 114 Playwright = 187/187 green** (Pw SCR-006 18 cases on disk; will push Pw to 132 / 205 once next full run completes).
 
 ---
 
@@ -85,7 +84,8 @@ Shipped files:
 
 | Commit | Pushed | What |
 |---|---|---|
-| _on disk CP-9.1a_ | — | shared pagination contract + IntakesListQuery / IntakeListRow schemas |
+| _on disk CP-9.1b_ | — | `apps/api/src/lib/cursor.ts` + 6 vitest unit tests (TEST-CUR-1..6) green |
+| `155e918` | 04:42 BST 18/05 | CP-9.1a shared pagination contract + IntakesListQuery / IntakeListRow schemas (tsc clean) |
 | `401ff4e` | 04:37 BST 18/05 | CP-8b SCR-006 page + interim sessionStorage nav + Pw spec + LIVE doc catch-up |
 | `1cdf8fc` | 03:32 BST 18/05 | CP-8 RT-006 Evidence Export backend + 8 integration tests |
 | `3d5fef4` | 03:09 BST 18/05 | CP-7b SCR-005 approver page + 18 Pw cases |
@@ -125,9 +125,9 @@ User-driven scope correction at 04:18 BST: **the product needs persistent enterp
 
 | Sub-task | Scope | Status |
 |---|---|---|
-| **CP-9.1a** | shared `PaginationQueryV1` + `IntakesListQueryV1` + `IntakeListRowV1` schemas | 🟡 on disk |
-| **CP-9.1b** | `apps/api/src/lib/cursor.ts` encode/decode + 4 unit tests | 🔵 next |
-| **CP-9.1c** | `GET /v1/intakes` route + 6 integration tests | 🔵 |
+| **CP-9.1a** | shared `PaginationQueryV1` + `IntakesListQueryV1` + `IntakeListRowV1` schemas | ✅ `155e918` |
+| **CP-9.1b** | `apps/api/src/lib/cursor.ts` encode/decode + 6 unit tests | 🟡 on disk, 6/6 green |
+| **CP-9.1c** | `GET /v1/intakes` route + 6 integration tests | 🔵 next |
 | **CP-9.1d** | `GET /v1/rca-findings` + 5 tests | 🔵 |
 | **CP-9.1e** | `GET /v1/repair-plans` + 5 tests | 🔵 |
 | **CP-9.1f** | `GET /v1/approvals` + `GET /v1/evidence-exports` + 10 tests | 🔵 |
@@ -170,6 +170,7 @@ Each link → list page (always works, no sessionStorage). Detail pages keep dee
 | Layer | Cases | Status |
 |---|---|---|
 | mask-policy unit | 16 | ✅ |
+| **cursor unit (CP-9.1b)** | **6** | **✅ (TEST-CUR-1..6)** |
 | api vitest integration RT-001 | 8 | ✅ |
 | api vitest integration RT-002 | 8 (TEST-007 RLS) | ✅ |
 | api vitest integration RT-003 | 8 (TEST-009 RLS) | ✅ |
@@ -182,10 +183,10 @@ Each link → list page (always works, no sessionStorage). Detail pages keep dee
 | Playwright SCR-004 × 3 | 18 | ✅ |
 | Playwright SCR-005 × 3 | 18 | ✅ |
 | Playwright SCR-006 × 3 | 18 | 🟡 on disk, run pending |
-| **Subtotal** | **199** | **181 green, 18 pending** |
+| **Subtotal** | **205** | **187 green, 18 pending** |
 | CP-9 new list-endpoint vitest (planned) | +~31 | 🔵 |
 | CP-9 new list-page Pw (planned) | +90 (6 cases × 5 lists × 3 browsers) | 🔵 |
-| **CP-9 target total** | **320** | |
+| **CP-9 target total** | **326** | |
 
 ---
 
@@ -207,5 +208,6 @@ Sessions to date that violated this rule and are now caught up:
 - 3d5fef4 (CP-7b) — was logged but stale → now reflects shipped state
 - 1cdf8fc (CP-8 backend) — was not logged → now in §2 + §4
 - 401ff4e (CP-8b) — logged here on the commit, not after
+- 155e918 (CP-9.1a) — logged at commit time per the new cadence
 
 Going forward: every `git commit` for this project is followed by an edit to this file in the same shell session. No exceptions.
