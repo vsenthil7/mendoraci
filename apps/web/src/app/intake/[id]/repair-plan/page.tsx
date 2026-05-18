@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { DEMO_TENANT_ID } from '../../../../lib/client';
-import { setActiveIntakeId, setActiveRepairPlanId } from '../../../../lib/active-context';
 
 /**
  * SCR-004 — Repair Plan page.
@@ -14,10 +13,8 @@ import { setActiveIntakeId, setActiveRepairPlanId } from '../../../../lib/active
  * Surfaces 412 rca_required (no RCA yet), 404 intake_not_found, 503/504 Bob
  * failures. Each step has data-testid hooks for Pw assertions.
  *
- * CP-7b: after a plan is generated, renders a link to the SCR-005 approver
- * page (/repair-plan/:repair_plan_id/approve). Also stamps both intake_id
- * and repair_plan_id into sessionStorage so the top-level NavLinks Approve /
- * Evidence buttons can deep-link the user without re-navigating to SCR-001.
+ * CP-9.5: sessionStorage active-context stamping removed (was in CP-8b).
+ * Top nav is now static.
  */
 
 type PlanStatus = 'idle' | 'submitting' | 'done' | 'error';
@@ -61,10 +58,6 @@ export default function RepairPlanPage() {
   const router = useRouter();
   const intakeId = params?.id ?? '';
 
-  // Stamp the route-supplied intake_id into nav state so RCA/Plan/Evidence
-  // top-nav links work even if the user landed here via a deep link.
-  if (intakeId) setActiveIntakeId(intakeId);
-
   const [chatMode, setChatMode] = useState<'plan' | 'code' | 'advanced' | 'ask'>('plan');
   const [status, setStatus] = useState<PlanStatus>('idle');
   const [plan, setPlan] = useState<PlanResponse | null>(null);
@@ -85,7 +78,6 @@ export default function RepairPlanPage() {
         const p = j as PlanResponse;
         setPlan(p);
         setStatus('done');
-        if (p.repair_plan_id) setActiveRepairPlanId(p.repair_plan_id); // stamps top-nav Approve
       } else {
         setStatus('error');
         setError(JSON.stringify(j));

@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { DEMO_TENANT_ID } from '../../../../lib/client';
-import { setActiveIntakeId, setActiveRepairPlanId } from '../../../../lib/active-context';
 
 /**
  * SCR-005 — Approver page.
@@ -20,9 +19,8 @@ import { setActiveIntakeId, setActiveRepairPlanId } from '../../../../lib/active
  *   submitted -> Reject  -> rejected
  *   approved/rejected -> terminal (no buttons enabled)
  *
- * CP-8b: when approval reaches 'approved', renders a link to SCR-006 evidence
- * export. Also stamps repair_plan_id + intake_id (from log payload) into
- * sessionStorage for the top-nav.
+ * CP-9.5: sessionStorage active-context stamping removed (was in CP-8b).
+ * Top nav is now static.
  */
 
 type Action = 'submit' | 'approve' | 'reject';
@@ -63,10 +61,6 @@ export default function ApproverPage() {
   const router = useRouter();
   const repairPlanId = params?.id ?? '';
 
-  // Stamp the route-supplied repair_plan_id into nav state so the Approve
-  // top-nav link works even on a deep-linked landing.
-  if (repairPlanId) setActiveRepairPlanId(repairPlanId);
-
   const [log, setLog] = useState<LogResponse | null>(null);
   const [loadError, setLoadError] = useState<string>('');
   const [approver, setApprover] = useState('alice@acme.test');
@@ -83,11 +77,7 @@ export default function ApproverPage() {
       });
       const j = await r.json();
       if (r.ok) {
-        const payload = j as LogResponse;
-        setLog(payload);
-        // Once we know the linked intake_id, stamp it so Evidence top-nav
-        // can deep-link from here.
-        if (payload.intake_id) setActiveIntakeId(payload.intake_id);
+        setLog(j as LogResponse);
       } else {
         setLoadError(JSON.stringify(j));
         setLog(null);

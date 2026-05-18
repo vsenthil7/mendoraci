@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { DEMO_TENANT_ID } from '../../../../lib/client';
-import { setActiveIntakeId } from '../../../../lib/active-context';
 
 /**
  * SCR-003 — Root-Cause Analysis page.
@@ -13,8 +12,9 @@ import { setActiveIntakeId } from '../../../../lib/active-context';
  * actions). Surfaces 404 intake_not_found, 412 mask_preview_unavailable,
  * 503 bob_unavailable, 504 bob_timeout from the API.
  *
- * CP-8b: stamps the route-supplied intake_id into sessionStorage so the
- * top-level NavLinks Plan/Evidence buttons can deep-link from a fresh tab.
+ * CP-9.5: sessionStorage active-context stamping removed (was added in CP-8b).
+ * Top nav is now static; user navigates via list pages or the deep-link still
+ * works on its own.
  */
 
 type RcaStatus = 'idle' | 'submitting' | 'done' | 'error';
@@ -40,8 +40,6 @@ export default function RcaPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const intakeId = params?.id ?? '';
-
-  if (intakeId) setActiveIntakeId(intakeId);
 
   const [chatMode, setChatMode] = useState<'plan' | 'code' | 'advanced' | 'ask'>('ask');
   const [status, setStatus] = useState<RcaStatus>('idle');

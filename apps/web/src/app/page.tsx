@@ -1,16 +1,14 @@
 'use client';
 import { useState } from 'react';
 import { randomIdempotencyKey, DEMO_TENANT_ID } from '../lib/client';
-import { setActiveIntakeId } from '../lib/active-context';
 
 /**
  * SCR-001 — CI Log Intake (Phase 1 minimal).
  * Anchors: RT-001 (BR-001), RT-008 mask preview, RT-015 idempotency-key client-side.
  *
- * On a successful intake creation we stamp the new intake_id into
- * sessionStorage via setActiveIntakeId() so the top-level NavLinks can
- * route the user into RCA / Plan / Approve / Evidence without re-clicking
- * through the per-page deep links.
+ * CP-9.5: sessionStorage active-context stamping removed (was in CP-8b). The
+ * top nav is now static and points at the list pages; users navigate via the
+ * list views instead of "active intake" deep links.
  */
 export default function IntakePage() {
   const [status, setStatus] = useState<string>('idle');
@@ -49,7 +47,6 @@ export default function IntakePage() {
       setStatus(r.ok ? 'submitted' : 'error');
       if (r.ok && j.intake_id) {
         setIntakeId(j.intake_id);
-        setActiveIntakeId(j.intake_id); // stamps top-nav
       }
       if (!r.ok) setError(JSON.stringify(j));
     } catch (e) {

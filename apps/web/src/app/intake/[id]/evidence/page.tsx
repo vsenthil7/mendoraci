@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { DEMO_TENANT_ID } from '../../../../lib/client';
-import { setActiveIntakeId, setActiveRepairPlanId } from '../../../../lib/active-context';
 
 /**
  * SCR-006 — Evidence Export page.
@@ -13,9 +12,8 @@ import { setActiveIntakeId, setActiveRepairPlanId } from '../../../../lib/active
  * presigned download link, manifest preview. Surfaces 412 plan_not_approved
  * (most common error path - the user needs to approve first), 404, 503.
  *
- * CP-8b: stamps intake_id (from route) into sessionStorage and, on success,
- * stamps the repair_plan_id from the response so the top-level Approve nav
- * link continues to deep-link correctly even after the evidence export.
+ * CP-9.5: sessionStorage active-context stamping removed (was in CP-8b).
+ * Top nav is now static.
  */
 
 type ExportStatus = 'idle' | 'submitting' | 'done' | 'error';
@@ -37,8 +35,6 @@ export default function EvidenceExportPage() {
   const router = useRouter();
   const intakeId = params?.id ?? '';
 
-  if (intakeId) setActiveIntakeId(intakeId);
-
   const [ttl, setTtl] = useState<number>(300);
   const [status, setStatus] = useState<ExportStatus>('idle');
   const [result, setResult] = useState<ExportResponse | null>(null);
@@ -56,10 +52,8 @@ export default function EvidenceExportPage() {
       });
       const j = await r.json();
       if (r.ok) {
-        const payload = j as ExportResponse;
-        setResult(payload);
+        setResult(j as ExportResponse);
         setStatus('done');
-        if (payload.repair_plan_id) setActiveRepairPlanId(payload.repair_plan_id);
       } else {
         setStatus('error');
         setError(JSON.stringify(j));
